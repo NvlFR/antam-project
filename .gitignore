@@ -1,0 +1,39 @@
+# --- Dependencies ---
+node_modules/
+npm-debug.log
+yarn-error.log
+pnpm-debug.log
+
+# --- Environment & Secrets (SANGAT PENTING) ---
+.env
+.env.local
+.env.*
+
+# --- Session & Auth Data ---
+# Kita ignore isi foldernya, tapi tetap track foldernya
+session/*
+!session/.gitkeep
+# Jika ada file json cookie di root
+*.json
+!package.json
+!package-lock.json
+# Kecualikan config/secrets.js jika hanya berisi map cabang (bukan password)
+!src/config.js
+
+# --- Playwright & Logs ---
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# --- Error Screenshots & Videos ---
+*.png
+*.jpg
+*.jpeg
+*.webm
+screenshots/
+videos/
+
+# --- OS System Files ---
+.DS_Store
+Thumbs.db

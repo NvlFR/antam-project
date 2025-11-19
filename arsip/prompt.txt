@@ -1,0 +1,1828 @@
+pertama ketika menggakses url antrean.logammulia.com akan di arahkan ke 
+nah untuk captcha saya pake 2captcha solver dan ada saya pakai proxy dataimpulse http://1cba5e91b5c8317edddb:d90c22467bde8d8d@gw.dataimpulse.com:823
+nah kita buat dulu struktur foldernya lalu kita buat roadmapnya
+untuk turnstile kita bisa manfaatkan 2captcha
+<body>
+
+    <div class="container">
+        </div>
+
+        <h1>📢 Pengumuman</h1>
+        <h3 style="text-align:center; color:#222; margin-bottom:25px;">
+            Langkah Mudah Pendaftaran Antrean Online <br>Butik Emas Logam Mulia
+        </h3>
+
+        <p>Pastikan Anda memenuhi poin-poin berikut untuk kelancaran pembelian:</p>
+
+        <ol>
+            <li>
+                <h3>Data Valid &amp; Verifikasi:</h3>
+                <p>• WAJIB mendaftarkan data asli: Nomor Telepon, Email, dan NIK.</p>
+                <p>• Data ini akan diverifikasi oleh pihak butik saat Anda melakukan pembelian.</p>
+                <p><b>Penting:</b> Jika nama dan NIK tidak sesuai, atau tidak membawa KTP fisik saat transaksi, Butik
+                    Emas Logam Mulia berhak membatalkan transaksi Anda.</p>
+            </li>
+
+            <li>
+                <h3>Jam &amp; Kuota Antrean:</h3>
+                <p>• Pembukaan antrean menyesuaikan dengan jam operasional butik dan ketersediaan stok.</p>
+                <p>• Pendaftaran antrean akan <b>TUTUP otomatis</b> saat kuota harian telah terpenuhi.</p>
+            </li>
+
+            <li>
+                <h3>Masa Berlaku Antrean:</h3>
+                <p>• Nomor antrean hanya berlaku untuk tanggal dibukanya kuota antrean tersebut.</p>
+            </li>
+        </ol>
+
+        <!-- Tombol Login/Register -->
+        <div class="button-group">
+            <a href="https://antrean.logammulia.com/login" class="btn-gradient">
+                <i class="bi bi-box-arrow-in-right me-2"></i> Log In
+            </a>
+            <a href="https://antrean.logammulia.com/register" class="btn-outline">
+                <i class="bi bi-person-plus me-2"></i> Register
+            </a>
+        </div>
+
+    </div>
+</body>
+
+ini halaman login nya
+
+<body class="">
+    <!-- loader -->
+    <!-- <div id="loader">
+        <img src="https://antrean.logammulia.com/assets/appmobile/assets/img/loading-icon.png" alt="icon" class="loading-icon">
+    </div> -->
+    <!-- * loader -->
+
+    <!-- App Header -->
+<div class="appHeader no-border transparent position-absolute">
+  <div class="left">
+    <!-- <a href="https://antrean.logammulia.com/login" class="headerButton goBack">
+      <ion-icon name="chevron-back-outline"></ion-icon>
+    </a> -->
+    <img src="https://antrean.logammulia.com/assets/images/antam.png" alt="Logo" height="50">
+  </div>
+  <div class="pageTitle"></div>
+  <div class="right">
+    <a href="https://antrean.logammulia.com/register" type="submit" class="btn btn-block btn-outline-primary">Register</a>
+  </div>
+</div>
+<!-- * App Header -->
+
+<!-- App Capsule -->
+<div id="appCapsule">
+  <div class="section mt-1 text-center">
+    <img src="https://antrean.logammulia.com/assets/images/butik-small.png" alt="Logo" height="100">
+    <h1>Log in</h1>
+    <h3>Antrean Butik Emas LM</h3>
+  </div>
+  <div class="section mb-5 p-2">
+    <form id="formInput" action="https://antrean.logammulia.com/login" method="POST" novalidate="novalidate">
+      <div class="card">
+        <div class="card-body pb-1">
+          <div class="form-group basic">
+            <div class="input-wrapper">
+              <label class="label" for="username">Username <span class="text-danger small"></span></label>
+              <input type="text" name="username" id="username" class="form-control" placeholder="Masukan e-mail atau WhatApp (08)" value="" required="">
+              <i class="clear-input">
+                <ion-icon name="close-circle" role="img" class="md hydrated" aria-label="close circle"></ion-icon>
+              </i>
+            </div>
+          </div>
+          <div class="form-group basic">
+            <div class="input-wrapper">
+              <label class="label" for="password" onclick="if (!window.__cfRLUnblockHandlers) return false; password_show_hide();">Password (klik lihat)<span class="text-danger small"></span></label>
+              <!-- <input type="password" class="form-control" id="password1" autocomplete="off"
+                placeholder="Your password"> -->
+              <input type="password" name="password" class="form-control" id="password" placeholder="Masukan Kata sandi Anda" value="" required="">
+              <i class="clear-input">
+                <ion-icon name="close-circle" role="img" class="md hydrated" aria-label="close circle"></ion-icon>
+              </i>
+              <!-- show password -->
+              <i class="fas fa-eye" id="show_eye"></i>
+              <i class="fas fa-eye-slash d-none" id="hide_eye"></i>
+              <!-- show password -->
+            </div>
+          </div>
+        </div>
+      </div>
+      <input type="hidden" name="token" class="form-control" value="6137e9036fec8ee16c7dc996da46b0f16497d99f713e71315963d228f638db43" required="">
+      <div class="card mt-1">
+        <div class="card-body">
+          <div id="captcha-container">
+            <div class="g-recaptcha" data-sitekey="6LdxTgUsAAAAAJ80-chHLt5PiK-xv1HbLPqQ3nB4" data-theme="light" data-type="image" data-size="normal"><div style="width: 304px; height: 78px;"><div><iframe title="reCAPTCHA" width="304" height="78" role="presentation" name="a-bl9pmyme4cg" frameborder="0" scrolling="no" sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-top-navigation allow-modals allow-popups-to-escape-sandbox allow-storage-access-by-user-activation" src="https://www.google.com/recaptcha/api2/anchor?ar=1&amp;k=6LdxTgUsAAAAAJ80-chHLt5PiK-xv1HbLPqQ3nB4&amp;co=aHR0cHM6Ly9hbnRyZWFuLmxvZ2FtbXVsaWEuY29tOjQ0Mw..&amp;hl=id&amp;type=image&amp;v=naPR4A6FAh-yZLuCX253WaZq&amp;theme=light&amp;size=normal&amp;anchor-ms=20000&amp;execute-ms=15000&amp;cb=ry755eu8ilo2"></iframe></div><textarea id="g-recaptcha-response" name="g-recaptcha-response" class="g-recaptcha-response" style="width: 250px; height: 40px; border: 1px solid rgb(193, 193, 193); margin: 10px 25px; padding: 0px; resize: none; display: none;"></textarea></div><iframe style="display: none;"></iframe></div>          </div>
+          <!-- <div class="custom-control custom-checkbox mt-1 mb-1">
+            <label for="captcha"><span class="text-danger small"></span></label>
+            <div class="form-check">
+              <input type="text" name="captcha" class="form-input" id="captcha" placeholder="Kode Captcha" required>
+                            <label>
+                <button type="button" id="refresh-captcha" class="btn btn-icon btn-outline-danger me-1">
+                  <ion-icon name="newspaper-outline"></ion-icon>
+                </button>
+              </label>
+            </div>
+          </div> -->
+
+          <div class="custom-control custom-checkbox mt-2 mb-1">
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" id="customCheckb1" name="rememberMe">
+              <label class="form-check-label" for="customCheckb1">
+                Remember me
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="form-links mt-2">
+        <div>
+          <!-- <a href="app-register.html">Log in OTP</a> -->
+          <!-- <a href="https://antrean.logammulia.com/otp" type="submit" class="btn btn-block btn-outline-success">Masuk OTP</a> -->
+        </div>
+        <div><a href="https://antrean.logammulia.com/forgot" class="text-muted">Forgot Password ?</a></div>
+        <!-- app-forgot-password.html -->
+      </div>
+      <div class="form-button-group  transparent">
+        <button type="submit" class="btn btn-primary btn-block btn-lg">Log in</button>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- * App Capsule -->
+
+        <!-- jQuery_ recaptcha -->
+    <script type="text/javascript" async="" charset="utf-8" src="https://www.gstatic.com/recaptcha/releases/naPR4A6FAh-yZLuCX253WaZq/recaptcha__id.js" crossorigin="anonymous" integrity="sha384-q07h3XBA70nS09Ie2wNhC9sz0IiWBy4+sTDIiGYNdIWpjsxTSzQUrY07Lwhm5p7n"></script><script src="https://www.google.com/recaptcha/api.js" type="text/javascript"></script>
+
+    <!--load swal js -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" type="text/javascript"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/inputmask/5.0.6/jquery.inputmask.min.js" type="text/javascript"></script>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" type="text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js" type="text/javascript"></script>
+
+    <!-- ========= JS Files =========  -->
+    <!-- Bootstrap -->
+    <script src="https://antrean.logammulia.com/assets/appmobile/assets/js/lib/bootstrap.bundle.min.js" type="text/javascript"></script>
+    <!-- Ionicons -->
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+    <!-- Splide -->
+    <script src="https://antrean.logammulia.com/assets/appmobile/assets/js/plugins/splide/splide.min.js" type="text/javascript"></script>
+    <!-- Base Js File -->
+    <script src="https://antrean.logammulia.com/assets/appmobile/assets/js/base.js" type="text/javascript"></script>
+
+    <script type="text/javascript">
+        function password_show_hide() {
+            var x = document.getElementById("password");
+            var show_eye = document.getElementById("show_eye");
+            var hide_eye = document.getElementById("hide_eye");
+            hide_eye.classList.remove("d-none");
+            if (x.type === "password") {
+                x.type = "text";
+                show_eye.style.display = "none";
+                hide_eye.style.display = "block";
+            } else {
+                x.type = "password";
+                show_eye.style.display = "block";
+                hide_eye.style.display = "none";
+            }
+        }
+
+        function password_show_hidee() {
+            var y = document.getElementById("password2");
+            var show = document.getElementById("show_eyee");
+            var hide = document.getElementById("hide_eyee");
+            hide.classList.remove("d-none");
+            if (y.type === "password") {
+                y.type = "text";
+                show.style.display = "none";
+                hide.style.display = "block";
+            } else {
+                y.type = "password";
+                show.style.display = "block";
+                hide.style.display = "none";
+            }
+        }
+    </script>
+
+    <!-- Pesan Error -->
+        <!-- Pesan warning -->
+    
+    <!-- Pesan info -->
+        <!-- Pesan success login -->
+    
+    
+    <!-- Pesan success -->
+    
+    <!-- Pesan form validation -->
+    
+    <!-- Insert -->
+    
+    <script type="text/javascript">
+        $.validator.addMethod("userName", function(value, element) {
+            var phonePattern = /^[0-9]{10,12}$/; // nomor 10-12 digit
+            var emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // format email
+            return this.optional(element) || phonePattern.test(value) || emailPattern.test(value);
+        }, "E-mail yang valid atau Nomor HP");
+
+        $(document).ready(function() {
+            $("#formInput").validate({
+                rules: {
+                    username: {
+                        required: true,
+                        userName: true
+                    },
+                    nik: {
+                        required: true,
+                        digits: true,
+                        minlength: 16,
+                        maxlength: 16
+                    },
+                    nama: {
+                        required: true,
+                        minlength: 3
+                    },
+                    phone: {
+                        required: true,
+                        digits: true,
+                        minlength: 10,
+                        maxlength: 13
+                    },
+                    mail: {
+                        required: true,
+                        email: true
+                    },
+                    password: {
+                        required: true,
+                        minlength: 7
+                    },
+                    terms: {
+                        required: true
+                    },
+                    captcha: {
+                        required: true
+                    }
+                },
+                messages: {
+                    username: {
+                        required: "Wajib diisi"
+                    },
+                    nik: {
+                        required: " Wajib diisi",
+                        digits: "Hanya boleh angka",
+                        minlength: "Harus 16 digit",
+                        maxlength: "Harus 16 digit"
+                    },
+                    nama: {
+                        required: " Wajib diisi",
+                        minlength: " Minimal 3 karakter"
+                    },
+                    phone: {
+                        required: "Wajib diisi",
+                        digits: "Hanya boleh angka",
+                        minlength: "Harus 10 digit",
+                        maxlength: "Harus 12 digit"
+                    },
+                    mail: {
+                        required: "Wajib diisi",
+                        email: "Format tidak valid"
+                    },
+                    password: {
+                        required: "Wajib diisi",
+                        minlength: "Minimal 7 karakter"
+                    },
+                    terms: {
+                        required: "Anda harus menyetujui syarat & ketentuan"
+                    },
+                    captcha: {
+                        required: "Wajib diisi"
+                    }
+                },
+                errorClass: "text-danger small",
+                errorElement: "span",
+                highlight: function(element) {
+                    $(element).addClass("is-invalid");
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass("is-invalid");
+                }
+            });
+        });
+    </script>    
+
+    <script type="text/javascript">
+        document.querySelectorAll(".formInput").forEach(form => {
+            form.addEventListener("submit", function(e) {
+                e.preventDefault(); // hentikan submit bawaan
+
+                // Ambil nilai dari form 
+                const nik = form.querySelector('[name="nik"]').value.trim();
+                const nama = form.querySelector('[name="nama"]').value.trim();
+                const email = form.querySelector('[name="mail"]').value.trim();
+                const phone = form.querySelector('[name="phone"]').value.trim();
+
+                // 1️⃣ Konfirmasi data
+                Swal.fire({
+                    icon: 'question',
+                    title: 'Koreksi Data',
+                    html: `
+                
+                <ul style="text-align:left">
+                    <li><b>NIK : </b> ${nik}</li>
+                    <li><b>Nama : </b> ${nama}</li>
+                    <li><b>E-mail : </b> ${email}</li>
+                    <li><b>WhatApp : </b> ${phone}</li>
+                </ul>
+            `,
+                    showCancelButton: true,
+                    confirmButtonText: 'Sudah Benar',
+                    cancelButtonText: 'Perbaiki',
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+
+                        // 2️⃣ Tampilkan Swal loading
+                        Swal.fire({
+                            title: 'Sedang diproses...',
+                            html: 'Mohon tunggu sebentar.',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        // 3️⃣ Delay sebentar biar swal muncul baru kirim form
+                        setTimeout(() => {
+                            form.submit();
+                        }, 600);
+                    }
+                });
+            });
+        });
+    </script>
+
+
+    <!-- <script>
+        document.querySelectorAll(".formInput").forEach(form => {
+            form.addEventListener("submit", function(e) {
+                e.preventDefault(); // stop submit normal
+
+                Swal.fire({
+                    title: 'Sedang diproses...',
+                    html: 'Mohon tunggu sebentar.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                // kasih sedikit delay biar Swal muncul sebelum reload
+                setTimeout(() => {
+                    e.target.submit();
+                }, 500);
+            });
+        });
+    </script> -->
+    <!-- loading -->
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('#refresh-captcha').click(function() {
+                $.ajax({
+                    url: 'https://antrean.logammulia.com/Authorization/refresh_captcha',
+                    type: 'GET',
+                    success: function(data) {
+                        $('#captcha-container').html(data);
+                    }
+                });
+            });
+        });
+    </script>
+
+nah dan setelah login itu suka ada halaman turnstile tapi kadang kadang jadi harus diperhatikan juga
+nah ini halaman
+# <!DOCTYPE html>
+# <html lang="en">
+#   <head>
+#     <title>Just a moment...</title>
+#     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+#     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+#     <meta name="robots" content="noindex,nofollow" />
+#     <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+#     <meta http-equiv="refresh" content="360" />
+
+#     <script src="/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1?ray=9a04aa0a39aef9a9"></script>
+
+#     <script
+#       src="https://challenges.cloudflare.com/turnstile/v0/b/93954b626b88/api.js?onload=cwlZd3&amp;render=explicit"
+#       async
+#       defer
+#       crossorigin="anonymous"
+#     ></script>
+#   </head>
+#   <body>
+#     <div class="main-wrapper" role="main">
+#         <div class="main-content">
+#             <h1 class="zone-name-title h1">antrean.logammulia.com</h1>
+            
+#             <p id="NCxXf2" class="h2 spacer-bottom">Verify you are human by completing the action below.</p>
+            
+#             <div id="mTfve8" style="display: grid;">
+#                 <div>
+#                     <div>
+#                         <input type="hidden" name="cf-turnstile-response" id="cf-chl-widget-mfine_response">
+#                     </div>
+#                 </div>
+#             </div>
+            
+#             <div id="CkftL8" class="spacer loading-verifying" style="display: none; visibility: hidden;">
+#                 <div class="lds-ring">
+#                     <div></div>
+#                     <div></div>
+#                     <div></div>
+#                     <div></div>
+#                 </div>
+#             </div>
+            
+#             <div id="ulQC2" class="core-msg spacer spacer-top">antrean.logammulia.com needs to review the security of your connection before proceeding.</div>
+            
+#             <div id="QFua0" style="display: none;">
+#                 <div id="challenge-success-text" class="h2">Verification successful</div>
+#                 <div class="core-msg spacer">Waiting for antrean.logammulia.com to respond...</div>
+#             </div>
+            
+#             <noscript>
+#                 <div class="h2">
+#                     <span id="challenge-error-text">Enable JavaScript and cookies to continue</span>
+#                 </div>
+#             </noscript>
+#         </div>
+#     </div>
+    
+#     <script>
+#         (function() {
+#             window._cf_chl_opt = {
+#                 cvId: '3',
+#                 cZone: 'antrean.logammulia.com',
+#                 cType: 'managed',
+#                 cRay: '9a04f2d14ad636ce',
+#                 cH: '2vESH0TQTsF59v0BCsQeWR1AbL9Q55Z0DzbdAn_Fc0k-1763442491-1.2.1.1-gYABDc7n9Agg.lKttfWcMCy0uIOvE9k8Tf.rByajImzegAFxU_mbmVPtSqUArAlG',
+#                 cUPMDTk: "\/login?__cf_chl_tk=oAgjZQ.s52YdlxZssV7wYGgmBg.NVdVZhtefReerbjs-1763442491-1.0.1.1-wxhREaNmm_J27TGtWE8MM.8926aWQ30LKqEOqVsrJws",
+#                 cFPWv: 'b',
+#                 cITimeS: '1763442491',
+#                 cTplC: 0,
+#                 cTplV: 5,
+#                 cTplB: '0',
+#                 fa: "\/login?__cf_chl_f_tk=oAgjZQ.s52YdlxZssV7wYGgmBg.NVdVZhtefReerbjs-1763442491-1.0.1.1-wxhREaNmm_J27TGtWE8MM.8926aWQ30LKqEOqVsrJws",
+#                 md: 'YfLsfprlJSKDZoaLyPMeI0U3LgpHLVYluCY59L8E34U-1763442491-1.2.1.1-WD1IMLsiqzxENCgQ6Ytq4T8a1gNPVPpuTr_nyr1FCXE8z29k1sl7rnQuQtYnp2pIL8f.UxARrvVg9yhBkzwXJgw7oVRl1HA7aKa5OhgE8SkloZjHI5lwqls1P2HP8tUKI4eYB.eVuLx8Hex01TstJ5Y0_Ed9_QziSvIhm15fd.PqAeDDhnmL3j1ApDNa.Jo0LF.wiNQ9aCSLZPPikvf8KmFbvt81HfNqIrWbuPAgO3Mi5EsYO5Vz1h6BLR3gkz9ybT5xUraYgnlqBXFRv6nphTH1qyrWfh47P5UHcQiSSZKJAVHaybU7i2LmU6mZQWvBGTrQVs6VvViYIn4ohjGKTDRSHZmi0uZwVX8gwJb3XeYBOT6cFuNGGoLlv_hQkk.XmG1agiU4HJYfghPxQ2a47SKcso0YXEnMXxkiwGh8pUxeA9V3ksAzCOGl0uCCgHDkdgDPgJ9oZc5O6c0bCetE2miYjZZuq4YO74pNbiGCdaBQD7..NY3Tp0ysZS_wEX6FGsiW3oQCqY3tGm9YvSYOu7nlfcp9n_y1QrWsXLNwmvg9wtIZ00KWBlwsYyGhsfTmMLd1EvMeoBFuihvMKqtkXYEA.EvPKTz1TPlfLIVJADI_83AtL9jyWdWHUx3wL71jGjqQLrtq4wlXDoUkhCSLooy4OSNRK3iUUfwJBqzzZ2Tl8af7GzJso6uQrM2wWOL9WmwCBGW9HogEaEbQmcfsEuEE.Ok4r9MrBcfFmH2T_5fHdScNQjqEoBcqDJhwD7YU3d8NLzSK6uMTPYzU38x7XZT2aMi3vRuq1LP4OawK1H25PR4uPa.OiSK.CSPLjbPidmawEvtdLvB9ZKq56zx4AykHQA9OtwsGjU_ZIUu_SCxlyxpLR8D0xJLWncMItYEf0zSpJ4l2VCd7NvTxhKR48YFYqB__RICCEZ33Ser03SypeNuKpxyGxYFPVTyM3aytAI2hMRxToT.T.5evN.i4dPCdSlRJsn_vAeJIsktDCxvLv52xNhMucWfreBFhV9kmKcZpsTzQDqiw_Wkde5Y4Q',
+#                 mdrd: 'Pftt1u_MbaSGB18MKrmwtWsqvUQ8bfPazqnZeJS5iik-1763442491-1.2.1.1-S5cfjOjZGjxFDEuE5R85hb8n8SvPgvp180shNybbIpkpeRuBtHEOyThjk0Z2R5gJ97nXNi.Oj7c1jeVZY8Z9zab7OPZXQBUu6dybDw6db5R_qqAW9ebmvE4lMwd2go0peRf2a.SciWqrWYNjoEYghgS.3YJXpBeLVDOzhDH7iYI0aPzUBfOuf0l612zKhe6IHfJwimInNOLzicFMgl6_IChCQID23EfaCXzE.pjYywzGN4zYq_AAnkDdM1udQnqpuwdJObDoVg8wwGczmAr5Itt9m2_MWhrx6ZnqRF6zEcaQgaNvxfoQld.VdhnGVE9i1kIj11POdsS8lzKYUJpoc4LZDCfqHdeW5bSp_OSlDi.cL2ISZIivLKARzGOsOc6HqSw8C1M2XbXpaQIh11BcP8gtH8s7MBy0p_b1A_vnjfk51pM.bq1g4hhBCInd.R0KjPQWt1e3Szw9nxVjUD8kIBW54t6Z17fz8Cfke.Cz0WPG5vc_gs_1DzZyh3L3.7LcSSWSmEXWN5BjjXADMggGnCOImnUAGVL7KmX8ad.EQPPWZFGKVdXOAKXuXwkxn3TlOZ2o58rPSUDI3h_bRV1BME2PA84SqMpuPttsFUNlJX8zIfOg5j.MNVo893_iq0GsVYh06NcHwXbemGU8kcQw__kXzIalA0jxm32jbypnG_7xluH5miu0zXv0ULSS3npBKNaZglvc77ZJXtJl_AWrjXIxME6hV4K3I4gBQQpbIOF0SmgEcjJ39_RqIAtCeuj28dCAKb5RiqhHPDPzKfg4tbKLSouuG5e9a2D_0iMqjr09q46..Feb38lFG1.oP1ovF86TWaB2mQbiFp7YyDVaQkO56O_.z0bU0OTWa2HM0YINc2qIG8kJrSLfxFpyzQvwUfMjRlDXlAksLGSZM_6pLM5L5fav_AujJIiUSYGGqridnZhijiK5y.JWDBCffjGfqPsSgVnCNkmK2XwYU6Dyv4jXu2msxu4zMzLOsQLkKmHLvH.lRr_IU0yJp.Vc3IW4GohnT9UHKbxnYweZvSwfz4OWZgjSrE1j_BJVlPltY4fi8WBYDsNhQV29g1yo4eDydf_lyccWRWq5Te61q2CRVvYCg8MwZPTmkr2c.uIPpmnX59WZ1poqhIXOG5uQyhVaUyDSPoF8rLyaRdqrXZ1ddj8MW6sXCLY4UieCDsjw3mydCosytOVEoc58ttth9uczl0WERI9m_Sul_Q0T5haz8IpTHiEqH3mLTro04KVDg6N42VLnjnEFxq0DDenA6wKog8LUve5bQTrItnhOzN2_w9QF4UZJDu2Z9gHVjomqTtu0GWoH6A8ArvueCRbI1oOZHOmrtaPFA7zO.CGQrMTk_0TRKQ9qWCYoLPKnr5vTRtS6sHclwyqkbkidt546IrRBCZFeypHy.sXWkcPX_cqG79TlupneGFkjtCbRNHL2Dc0ZGMvQRx_kTbz7e7saX.qCUm8hKtkHm4BSt1F7ddjEgU95MDpxhsRuA5iyZc3MOnGurCOsRlwajrZRH6INl0gyAgy3LIziEZWxpyZo94hrBwbzmtWG1YyJvumtZFkQujZ1JrtgyakgLIyoAXA.C6l29T43C_U3vjDinWMU4BI6FPJe4zCaFouPPHDHWx7D_3K3XegsDeUUpmWgdaPRo1tXXBSZ86DqEzrF5BYqciXZUDykFcq.YforRGZRqMP9Y0ql8Ir8Y2A0M3ewog5dzmQ3LU.B4iWCAjBL17V6QE6cll5.wF4jwECsqO5zwEqAwcCDhmuk9utYw2rsiXuuUwfsuoNl0YwVYMU9uAOnMef_opxa1gLH.1ZJPtysZKQT9Asp3XHiF0lfpPlMq.wuUihvVYUKDtpVCsmOh6lH.d9DwQe76miGnBrZmoTHHAgT7hkSq3uE2Tf45M2KYxIup9pyewuv1xS.xkog5ZbCJoyCAIbQ6SQAWZKUbVZSZpEh7F10UH1wqq45S.6Llo4jofsOPJgPaBhXvWQqB9YVmcf9MCeGG9Mdtszpi0BKAmvFvH1UAoB2M3O3CehRmRxD5SIcmvmd18JmKCB17Scgt0Ji7eLmPjx9MdoTdNSLs8sd2nLTJ7O6H1Qz7jrOXqxhKXzlhNrTqp814.hHd0wKT3nBxBJEjAwnCy5DimFF3YqgdugnzkPx1ZFUeq0c4_QheZ7HFS4Wb6zuksEMkBWalby9_pf7DvU8af7_IgKc77X0CC0AZAMis0K8xCOJZDaB3YkMdTFm8LMJBl0xR2.LiL1_HqU8yY04mMbOY_gMSyDSPoGVwVPIm.AqpJ748Gs25Y6.kH3Vq4yXJ2XEv6OpgYqGrHdnqo7DArhOS4OnhT4vTxDvOUs0VJzPcJcabc7ZWt43L7mePsKrfxL0aq1P0E5Ql7_DicaLFnuBEP3sso_E8qASZfmtELqViVn3dqfMqDAao5cqVUWpXLS5Hd3bwMSMYMdaTCiql9v.0dbTXdt7xnTP1KXHjZuS8yyFZ96YsLiBburEKSPuOc13d7FXyhxGQqSv.BwRO9HDZBMH4dCz6EVVVQBw1jwV7rJsM9jASeBy25VPlezIWTmwA_Vh7zV8FRTymhslwbWGl4Y9403wzvRqgnYSM4ghtXAX8tA85plQcscf5SESHaMVEXg9JpemxGWH7EZnTscmH_cwlBL8OdQrnEj3JdKpLc88lGTUtJU8jvNgIahTkJhldhhyJlyPxNXw1GHHmKfrQcqNbunLX6h7K1NTQ7H3KTB5xw_27nPgq3ahrzorBKjddom_u6WdWloHJKtPV0uwS_hfVMLyGZI2vSBhA1bUtVFTfknLX1eX93v299c.wn0eyAn8Ncch22u2rCjDqCJbpd7BcKbe5pMXiA0AOgzhevcYqisfCPPehDxeQfJxN1poS0aNVu9R7bxtVH8k268eiqFiTdio7O6lEl2Bkf.Ctegs_PpzXjdpdfdOew48hrwoCHruCZdvA6L3uZ6B54oX8DW.CbHf5QkHNeR30ss55THw1W.bedCmvDCijOh0Ja0aQTw3i4n.AMXIfDt9wNMTbveTZQfwMaYgrsYW6CtNnqcuBMnQZ1XIcZCzbNKcs37ZYdSlsz0Zz6vcP783GgaLPG2faOH7t8l0n_zGnJ7undUrmRAptPGzDayq29fnGXZxDorXO6c7P24M4DdEXGBwLUguAnEuDQiodVA1PgDGV_BINKl_Rmd5o6POW657xv0tXcsSDkPDd6oTtU6rJf6ZqPvKhrTGgLCJEXGUH2SUiZWEibWY5WCkznz4ArdEL7phqEAk0Ck4tjyt7RfGsBRpRvw3iZCjatv6qqkS5Tbme2ehQ3behEE_BZeeZmSSScdfbEuTP5u8B8_E2k_3NfqT9jIdKSG87kbQvQcU2psgKAA83NUC7FY.drRdNajjDXc0cGHtG7rCyGV1ALqtRwB0lT.JRLvX82RY2p3lHchN0dco7qV14erDhwWnYMnazYKIqYPD8I7QtZ3kwTBZhSaHkv0E5b7rCLXsvliS.8Z1UEroIPuP_19Ma6X8IctkOccYW6edmlrrEUNXPAWfqHQErdbdLtznmX5k0bkXH8Gi9O3GY4Reju5uDmxoBP7o82_35nabBZG6G5cbxOt7B6s.ythTle1eeo1Z4CRHlTYrD9FbI3qut3Bk6F4zd3ccmT93bXzIOmL9HLJXk.Z_PamhS2MU6BHZH08LK4qtnjNnCt6Q.FL2EchygYUcS4GcaGDBR7ghuCb1jMzyvaxn7gT_nYVeyGklsqUgpXuOmZ0KKu62laxAoRdIsLUqdQDyL_YnyE0Nxn7lGniaBavCz2gvKmgWeGsDRPcdEsoNmF3iNqbZUyTesvjkZTvKUCqXPlh9NYwp57gXrtlnntdCKwXK4_36N00B62NSNR9dhMRUMUxcGLYtE1bNeZ7fhMr_4TU9yl.EC_7BIvxgNeSbCv73WzLBCiPh9O8PwE4EMQQvOE1zSzrzvP24znEiPbQN34MRgQSYUdKwStcp0g.WkWI_OnK5H87_ZyAy3HtomG4.UrMVfbqIQpxoFd0eYJUGbGeVsk3PwIVFY5n1Be9ykWf1JfHk.weDB.ys6nZ71eQRRxFR5VxXVFTwsBwR7VAvNpGLUMMdbnRUqr2spp6FQ8COaZqXli8r1hMGcQ4RJXYwZRPm7WlXEJ_5KhEa3q7IPrBhEHObSix2hwoG8jm4Km.6oRjHG2SgrlwpRWZzBHMo8eP7YGKH3RfGe3fk9_aOPHd7B0NyK3qirfwvcxZRgHX4Wry1989I1nMdzqRBW2IX7CuVCrvRUAtBr69yecl7mFgN.sdLeBvNI8.q8hY8CAMiwNe.7b1hYOEL4WFZNee7encgtvcHbUrvu4D8aPLqTta.NONHsRyyOYjo.n8uacz9wKgy.L_pnv_65bDOX_6nhd7VRkUmwdQlAK4XSb3ShDCCdPiFu8kslXZ3pLLW3jShHiYdV5NLhWrFXkVIChyK9Vf3t9QuWukkQi84KdbgVHP4ZIBsNBJBbXwsJhZhrX1DKlic.w2CAcSP1ncxwv0lFdBLUxfnNfgkXkEuVX4Y1fAf1KW7ru9.DQxjcG1AZSyzq0a0a.Uq2M7XrauRvNhvwWVp__5aNnBelMn1DjOdL0YLfyrP7ip4LjSVhN.FHjWNsz2xpEsE1JUtsICG._dXBSx4ydHWViACN0uTyWxyKtiVVgqRmf7Krfl2ZtiJ7rgdcU5wYzn.PLauVYi_r5GE4k53XOfxPahq6bGx.rLF78lnAGkmb9ETdx3YfKhPzXBqZbMGya2pIHtde.6idOOSYo4i3kQw7rboKVietlC.CRUuaM.ZCChJL1Hfd18VX1zbk_6GUuBxq6EiH0jO9NNo4QdntF1BmwXSuhNXsAUSqnKJkJ3rYt4uEWAdz9SpFbTIgSPkniSYxZJrO49Fla0O_m5yIPNLe9E3D1H_L2RnMhPmiOz2NEHNBTmJYXgYZai2tEXG3P8LhHigIJ9dq6CXojVSchcBo_EEV9Uzp9LL0wer8p52JncPvwAIWNQMv5xm3QZbEe18WZWIoks4twWEoos8g43CXf7uJuZrXBHcUdZ8VRa.qxEtA',
+#                 };
+#                 var a = document.createElement('script');
+#                 a.src = '/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1?ray=9a04f2d14ad636ce';
+#                 window._cf_chl_opt.cOgUHash = location.hash === '' && location.href.indexOf('#') !== -1 ? '#' : location.hash;
+#                 window._cf_chl_opt.cOgUQuery = location.search === '' && location.href.slice(0, location.href.length - window._cf_chl_opt.cOgUHash.length).indexOf('?') !== -1 ? '?' : location.search;
+                
+#                 if (window.history && window.history.replaceState) {
+#                     var ogU = location.pathname + window._cf_chl_opt.cOgUQuery + window._cf_chl_opt.cOgUHash;
+#                     history.replaceState(null, null, "\/login?__cf_chl_rt_tk=oAgjZQ.s52YdlxZssV7wYGgmBg.NVdVZhtefReerbjs-1763442491-1.0.1.1-wxhREaNmm_J27TGtWE8MM.8926aWQ30LKqEOqVsrJws" + window._cf_chl_opt.cOgUHash);
+                    
+#                     a.onload = function() {
+#                         history.replaceState(null, null, ogU);
+#                     };
+#                 }
+                
+#                 document.getElementsByTagName('head')[0].appendChild(a);
+#             }());
+#         </script>
+    
+#     <div class="footer" role="contentinfo">
+#         <div class="footer-inner">
+#             <div class="clearfix diagnostic-wrapper">
+#                 <div class="ray-id">Ray ID: <code>9a04f2d14ad636ce</code></div>
+#             </div>
+#             <div class="text-center" id="footer-text">
+#                 Performance &amp; security by <a rel="noopener noreferrer" href="https://www.cloudflare.com?utm_source=challenge&amp;utm_campaign=m" target="_blank">Cloudflare</a>
+#             </div>
+#         </div>
+#     </div>
+
+#   </body>
+# </html>
+
+
+ini halaman setelah loginya
+
+<body class="">
+
+    <!-- loader -->
+
+    <!-- <div id="loader">
+        <img src="assets/img/loading-icon.png" alt="icon" class="loading-icon">
+    </div> -->
+
+    <!-- * loader -->
+
+    <!-- App Header -->
+    <div class="appHeader">
+        <div class="left">
+            <a href="https://antrean.logammulia.com/antrean" class="headerButton goBack">
+                <ion-icon name="chevron-back-outline" role="img" class="md hydrated" aria-label="chevron back outline"></ion-icon>Antrean
+            </a>
+        </div>
+        <div class="pageTitle">
+            Profile
+        </div>
+        <div class="right">
+            <a href="https://antrean.logammulia.com/logout" class="headerButton">
+                <ion-icon name="log-out-outline" role="img" class="md hydrated" aria-label="log out outline"></ion-icon>
+            </a>
+        </div>
+    </div>
+    <!-- * App Header -->
+
+    <!-- App Capsule -->
+    <div id="appCapsule">
+
+
+        <div class="listview-title mt-1">Settings</div>
+        <ul class="listview image-listview text inset">
+            <li>
+                <a href="https://antrean.logammulia.com/user-updated" class="item">
+                    <div class="in">
+                        <div>NOVAL FATURRAHMAN </div>
+                        <span class="text-primary">Edit</span>
+                    </div>
+                </a>
+            </li>
+            <li>
+                <a href="https://antrean.logammulia.com/user-email" class="item">
+                    <div class="in">
+                        <div>novalfr210@gmail.com</div>
+                        <span class="text-primary">Edit</span>
+                    </div>
+                </a>
+            </li>
+        </ul>
+
+        <div class="listview-title mt-1">Security</div>
+        <ul class="listview image-listview text mb-2 inset">
+            <li>
+                <a href="https://antrean.logammulia.com/user-password" class="item">
+                    <div class="in">
+                        <div>Update Password</div>
+                    </div>
+                    <span class="text-primary">Edit</span>
+                </a>
+            </li>
+        </ul>
+        
+
+        <ul class="listview image-listview text mb-2 inset">
+            <li>
+                <a href="https://antrean.logammulia.com/antrean" class="btn btn-primary btn-lg btn-block w-100">
+                    <div class="in">
+                        <div>Menu Antrean</div>
+                    </div>
+                </a>
+            </li>
+        </ul>
+
+        <!-- <button>ANTREAN</button> -->
+
+
+        <!-- <button type="button" class="btn btn-primary btn-lg btn-block">Tampilkan Slot</button> -->
+
+
+    </div>
+    <!-- * App Capsule -->
+
+
+    <!-- App Bottom Menu -->
+    <div class="appBottomMenu">
+
+
+        <a href="https://antrean.logammulia.com/" class="item">
+            <div class="col">
+                <ion-icon name="apps-outline" role="img" class="md hydrated" aria-label="apps outline"></ion-icon>
+                <strong></strong>
+            </div>
+        </a>
+
+    </div>
+    <!-- * App Bottom Menu -->
+
+    <!--load swal js -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" type="text/javascript"></script>
+    <!-- ========= JS Files =========  -->
+    <!-- Bootstrap -->
+    <script src="https://antrean.logammulia.com//assets/appmobile/assets/js/lib/bootstrap.bundle.min.js" type="text/javascript"></script>
+    <!-- Ionicons -->
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+    <!-- Splide -->
+    <script src="https://antrean.logammulia.com//assets/appmobile/assets/js/plugins/splide/splide.min.js" type="text/javascript"></script>
+    <!-- Base Js File -->
+    <script src="https://antrean.logammulia.com//assets/appmobile/assets/js/base.js" type="text/javascript"></script>
+
+    <script type="text/javascript">
+        // Add to Home with 2 seconds delay.
+        AddtoHome("2000", "once");
+    </script>
+
+    <!-- Pesan Error -->
+        <!-- Pesan warning -->
+    
+    <!-- Pesan info -->
+        <!-- Pesan success login -->
+    
+    
+    <!-- Pesan success -->
+    
+    <!-- Pesan form validation -->
+    
+
+
+
+</body>
+
+dan ini halaman di antrean nya
+<body class="">
+
+    <!-- loader -->
+    <!-- <div id="loader">
+        <img src="https://antrean.logammulia.com//assets/appmobile/assets/img/loading-icon.png" alt="icon" class="loading-icon">
+    </div> -->
+    <!-- * loader -->
+
+    <!-- App Header -->
+    <div class="appHeader">
+        <div class="left">
+            <a href="https://antrean.logammulia.com/users" class="headerButton goBack">
+                <ion-icon name="chevron-back-outline" role="img" class="md hydrated" aria-label="chevron back outline"></ion-icon>Profile
+            </a>
+        </div>
+        <div class="pageTitle">
+            Antrean Butik Emas LM
+        </div>
+        <div class="right">
+            <a href="https://antrean.logammulia.com/logout" class="headerButton">
+                <ion-icon name="log-out-outline" role="img" class="md hydrated" aria-label="log out outline"></ion-icon>
+            </a>
+        </div>
+    </div>
+    <!-- * App Header -->
+
+    
+        <!-- * Dialog Basic -->
+
+    <!-- App Capsule -->
+    <div id="appCapsule">
+
+        <div class="section mt-2">
+            <div class="card">
+                <div class="card-body">
+                    <div class="p-1">
+                        <div class="text-center">
+                            <h2 class="text-primary">
+                                <div class="tanggal" id="tanggal">Selasa, 11 November 2025</div>
+                                <div class="jam" id="clock">07:52:47</div>
+
+                                                                    <p>--------------------</p>
+                                                            </h2>
+                            <!-- <div class="header-antrean">
+                                    XXXXX
+                                </div> -->
+                        </div>
+                        <!-- <form id="form" method="post"> -->
+                        <form action="https://antrean.logammulia.com/antrean" method="get" class="row g-3" accept-charset="utf-8">
+                        <div class="form-group basic animated">
+                            <div class="input-wrapper">
+                                <!-- <label class="label" for="name2">BELM</label> -->
+                                <!-- <select class="form-control" name="BELM" id="BELM">                                        
+                                    </select> -->
+                                <select name="site" id="site" class="form-control" onchange="if (!window.__cfRLUnblockHandlers) return false; updateToken()" required="">
+                                    <option value="">-- Pilih BELM --</option>
+                                                                            <option value="4">
+                                            Butik Emas LM - Balikpapan                                        </option>
+                                                                            <option value="1">
+                                            Butik Emas LM - Bandung                                        </option>
+                                                                            <option value="19">
+                                            Butik Emas LM - Bekasi                                        </option>
+                                                                            <option value="16">
+                                            Butik Emas LM - Bintaro                                        </option>
+                                                                            <option value="17">
+                                            Butik Emas LM - Bogor                                        </option>
+                                                                            <option value="5">
+                                            Butik Emas LM - Denpasar                                        </option>
+                                                                            <option value="20">
+                                            Butik Emas LM - Djuanda                                        </option>
+                                                                            <option value="6">
+                                            Butik Emas LM - Gedung Antam                                        </option>
+                                                                            <option value="3">
+                                            Butik Emas LM - Graha Dipta                                        </option>
+                                                                            <option value="11">
+                                            Butik Emas LM - Makassar                                        </option>
+                                                                            <option value="10">
+                                            Butik Emas LM - Medan                                        </option>
+                                                                            <option value="12">
+                                            Butik Emas LM - Palembang                                        </option>
+                                                                            <option value="24">
+                                            Butik Emas LM - Pekanbaru                                        </option>
+                                                                            <option value="21">
+                                            Butik Emas LM - Puri Indah                                        </option>
+                                                                            <option value="15">
+                                            Butik Emas LM - Semarang                                        </option>
+                                                                            <option value="23">
+                                            Butik Emas LM - Serpong                                        </option>
+                                                                            <option value="8">
+                                            Butik Emas LM - Setiabudi One                                        </option>
+                                                                            <option value="13">
+                                            Butik Emas LM - Surabaya 1 Darmo                                        </option>
+                                                                            <option value="14">
+                                            Butik Emas LM - Surabaya 2 Pakuwon                                        </option>
+                                                                            <option value="9">
+                                            Butik Emas LM - Yogyakarta                                        </option>
+                                                                    </select>
+                                <input type="hidden" name="t" id="t" value="">
+                                <!-- <input type="text" class="form-control" id="name2" placeholder="Your name">
+                                    <i class="clear-input">
+                                        <ion-icon name="close-circle"></ion-icon>
+                                    </i> -->
+                            </div>
+                        </div>
+                        <!-- <div class="form-group basic animated">
+                            <div class="input-wrapper">
+                                <label class="label" for="tanggal">Tanggal</label>
+                                <input type="hidden" name="tanggal" class="form-control" value="2025-11-11" readonly required>
+                                <i class="clear-input">
+                                    <ion-icon name="close-circle"></ion-icon>
+                                </i>
+                            </div>
+                        </div> -->
+
+                        <div class="mt-2">
+                            <button class="btn btn-primary btn-lg btn-block w-100">Tampilkan Butik</button>
+                            <!-- <button type="button" class="btn btn-primary btn-lg btn-block">Tampilkan Slot</button> -->
+                        </div>
+                        </form>                        <!-- </form> -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+    </div>
+    <!-- * App Capsule -->
+    <!-- <p style="font-size: small; color: gray;">Silakan pilih cabang.</p> -->
+
+    <!-- App Bottom Menu -->
+    <div class="appBottomMenu">
+
+        <a href="#" class="item">
+            <div class="col">
+                <ion-icon name="apps-outline" role="img" class="md hydrated" aria-label="apps outline"></ion-icon>
+
+            </div>
+        </a>
+
+    </div>
+    <!-- * App Bottom Menu -->
+
+    <script type="text/javascript" async="" charset="utf-8" src="https://www.gstatic.com/recaptcha/releases/naPR4A6FAh-yZLuCX253WaZq/recaptcha__id.js" crossorigin="anonymous" integrity="sha384-q07h3XBA70nS09Ie2wNhC9sz0IiWBy4+sTDIiGYNdIWpjsxTSzQUrY07Lwhm5p7n"></script><script src="https://www.google.com/recaptcha/api.js" type="text/javascript"></script>
+    <!--load swal js -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" type="text/javascript"></script>
+    <!-- ========= JS Files =========  -->
+    <!-- Bootstrap -->
+    <script src="https://antrean.logammulia.com//assets/appmobile/assets/js/lib/bootstrap.bundle.min.js" type="text/javascript"></script>
+    <!-- Ionicons -->
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+    <!-- Splide -->
+    <script src="https://antrean.logammulia.com//assets/appmobile/assets/js/plugins/splide/splide.min.js" type="text/javascript"></script>
+    <!-- Base Js File -->
+    <script src="https://antrean.logammulia.com//assets/appmobile/assets/js/base.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        function updateDateTime() {
+            var now = new Date();
+
+            // Format tanggal Indonesia
+            var options = {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            };
+            var tanggal = now.toLocaleDateString('id-ID', options);
+
+            // Jam, menit, detik
+            var hours = String(now.getHours()).padStart(2, '0');
+            var minutes = String(now.getMinutes()).padStart(2, '0');
+            var seconds = String(now.getSeconds()).padStart(2, '0');
+            var currentTime = hours + ":" + minutes + ":" + seconds;
+
+            // Masukkan ke elemen
+            document.getElementById("tanggal").textContent = tanggal;
+            document.getElementById("clock").textContent = currentTime;
+        }
+
+        // Panggil pertama kali
+        updateDateTime();
+
+        // Update setiap detik
+        setInterval(updateDateTime, 1000);
+    </script>
+
+    <script type="text/javascript">
+        // Add to Home with 2 seconds delay.
+        AddtoHome("2000", "once");
+    </script>
+
+    <!-- Pesan Error -->
+        <!-- Pesan warning -->
+    
+    <!-- Pesan info -->
+        <!-- Pesan success login -->
+    
+    
+    <!-- Pesan success -->
+    
+    <!-- Pesan form validation -->
+    
+
+    <script type="text/javascript">
+        const secretMap = {
+             "4": "49ab32490d01ff03d2e38394a7bb5d13632077e1c29cd159824a5d2b67068e1b",
+             "1": "5804ddc239cb88c63ddc6ed95b6e7448ce429ac601105c5df02db5809c444f5a",
+             "19": "5bb290b6476d27b5dc4554d1de28afa38addcfd9d8fc8173eaee0f5e2c724be4",
+             "16": "8b908ea214ff714e044fbc6227a9075786aee1de8060887865b2cb8f1b6c7047",
+             "17": "1711e9a491d316696e958951ad43095895fb4fe1aae763713fc53dde49f36c08",
+             "5": "f46dd365f97c078c96bfdbf4951fb7ba4e9d6cd19df31c036680dffacf92616c",
+             "20": "ef9355153d1dedf6ee1e196bcb5e39ac864e2cee68fa4a6d197d354a32446cfa",
+             "6": "2d8ab5d3e179988e9b7fc3258d6966418a6ed67b5340db39f60a58100d6cf4ca",
+             "3": "fff9dd3d663c298e82f80d8fd185ffc68ddad18bc448a9b633f2b3af721fc022",
+             "11": "371bc0a7a08912012fccb4eacc5850f908103fef53be98d94ec10c5818521aa8",
+             "10": "411a97f0038d4e7dc7b883689b20dd80a99958579986c1701eefdee879c62dd2",
+             "12": "42fc6d53c7fe69cf4dcc3ec7d5a247ea2532cf5800e56b3fdb4fa890594d0f4b",
+             "24": "010c9c769d226147f22ab019ef6e3f5b9f70c22678f62c20a08ff974cd794f87",
+             "21": "1ca4355363523a7d6824f8aade5cbd00fec21ea1d4bc3a5cecac7485ec4e6447",
+             "15": "75d3c46ddeb5f13f0aa021847f16cbad195243869b29ec47697fa3dd654cd7d8",
+             "23": "cc3071cc9c96af4a81cf19cc87ed76057b964d01117a6bd87e45c1b88d9ab51f",
+             "8": "26f567e14b9744f50b9903be77c377a5322884d1b4a4076ccf4780b41809c28b",
+             "13": "a3e63b82063ef2e3f6715d700c1de4c191abc8d97ca2da0e342e7adf6bb259e5",
+             "14": "1a105b5a724b99400a715b6b8d043bf9f3b821c1caca1a599d3e7e1b1576b55a",
+             "9": "b47560b59c11452b1eaf31ecc2a32a0e2751e38b430c25a5c8eaf3a92b8bfe84",
+                    };
+
+        function updateToken() {
+            const id = document.getElementById('site').value;
+            document.getElementById('t').value = secretMap[id] || '';
+        }
+
+        // Auto-update token saat halaman dimuat (jika sudah ada pilihan)
+        updateToken();
+    </script>
+
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99c9ce7d7b3cfff1',t:'MTc2MjgyMjM0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><iframe height="1" width="1" style="position: absolute; top: 0px; left: 0px; border: none; visibility: hidden;"></iframe>
+
+</body>
+
+
+
+
+
+
+<div class="card-body">
+                        <div class="text-center">
+                            <h2 class="text-primary">Kuota Tersedia </h2>
+                            Butik Emas LM - Graha Dipta                        </div>
+                                                    <!-- <form> -->
+                            <form action="https://antrean.logammulia.com/antrean-ambil/" method="post" accept-charset="utf-8">
+                            <div class="text-center">Sisa : <span class="badge bg-secondary">0</span></div>
+
+                            <div class="form-group boxed">
+                                <label class="label"></label>
+                                <div class="d-flex align-items-center justify-content-between p-2 border rounded">
+                                    <span> Sesi waktu ambil antrean : Pukul 07:00 - 07:30</span>
+                                </div>
+                            </div>
+
+                            
+                                <div class="form-group boxed">
+                                    <div class="input-wrapper">
+                                        <label class="label" for="wakda"></label>
+                                        <select class="form-control custom-select" id="wakda" name="wakda" required="">
+                                            <option value="">--Pilih Waktu Kedatangan--</option>
+                                                                                            <!-- <option value="5" disabled>
+                                                    Pukul • 08:30-11:00 (❌ Penuh 100/100)                                                </option> -->
+                                                <option value="5" disabled="">
+                                                    Pukul • 08:30-11:00 (❌ Penuh 100/100)                                                </option>
+                                                                                    </select>
+                                    </div>
+
+                                </div>
+                                <center>
+
+                                    <div class="form-group boxed">
+                                        <div class="input-wrapper">
+                                            <button class="btn btn-secondary rounded shadowed  me-1 mb-1" disabled="">Penuh</button>
+                                        </div>
+                                    </div>
+                                </center>
+                                                        <!-- </form> -->
+                            </form>                                            </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+                            Request URL
+https://antrean.logammulia.com/login
+Request Method
+GET
+Status Code
+200 OK
+Remote Address
+172.66.168.219:443
+Referrer Policy
+no-referrer-when-downgrade
+access-control-allow-headers
+Content-Type, Authorization, X-Requested-With
+access-control-allow-methods
+GET, POST, OPTIONS, PUT, DELETE
+access-control-allow-origin
+https://antrean.logammulia.com
+alt-svc
+h3=":443"; ma=86400
+cache-control
+no-store, no-cache, must-revalidate
+cf-cache-status
+DYNAMIC
+cf-ray
+99faf8b44ef44494-SIN
+content-encoding
+br
+content-security-policy
+upgrade-insecure-requests
+content-type
+text/html; charset=UTF-8
+date
+Mon, 17 Nov 2025 00:04:34 GMT
+expires
+Thu, 19 Nov 1981 08:52:00 GMT
+panel
+hpanel
+permissions-policy
+accelerometer=(), camera=(), microphone=(), geolocation=()
+platform
+hostinger
+pragma
+no-cache
+priority
+u=0,i
+referrer-policy
+no-referrer-when-downgrade
+server
+cloudflare
+server-timing
+cfExtPri
+set-cookie
+csrf_cookie_name=f6eb4859f29ca523fe3b4a1b700a604a; SameSite=Strict; Secure; Path=/; Max-Age=300; Expires=Mon, 17 Nov 2025 00:09:34 GMT
+strict-transport-security
+max-age=2592000; includeSubDomains; preload
+vary
+Accept-Encoding
+x-content-type-options
+nosniff
+x-powered-by
+PHP/8.1.31
+x-turbo-charged-by
+LiteSpeed
+:authority
+antrean.logammulia.com
+:method
+GET
+:path
+/login
+:scheme
+https
+accept
+text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+accept-encoding
+gzip, deflate, br, zstd
+accept-language
+id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7
+cookie
+_tt_enable_cookie=1; _ttp=01K8MG4D49712Q21Y3DEB288NR_.tt.1; _fbp=fb.1.1761624605498.18281812612592358; _hjSessionUser_1121314=eyJpZCI6ImNjZjFiODE1LTcxZWMtNTc0Ny05YTUyLTllNjA3YmMyNTdkNSIsImNyZWF0ZWQiOjE3NjE2MjQ2MDIwMzMsImV4aXN0aW5nIjp0cnVlfQ==; _gcl_au=1.1.1535391468.1761624601.947425733.1761624615.1761624615; _ga=GA1.2.451061643.1761624602; cto_bundle=-nw_6F9VTVNHMFppTGsyS21tUEJWNHRheWdLblVhcHV6aTQwUndVMGllN2M2djl3dFp0cFptJTJGVkdQUnN3TCUyRk1FdndaWE1xRWVIWFpyZVptN293cUwlMkZudTBsdFhPQWRpQTh5cmI5NG1XTUQlMkY2QTZ0NmROM0k1TDFqRG5ST09mcWFzWEttb0huMUJHTldlNnlQeG5LS3IxRmFxNXZ5ZUhuMEJvVjVuaVlLNnVsSFEyUSUzRA; ttcsid=1761624601757::YG27pRqueEYgWjfMBVPx.1.1761624625012.0; ttcsid_CR39QRJC77U85A2HF4A0=1761624601755::AyD3TNG6K_uaMqKmexl1.1.1761624625012.0; _ga_8XC1TTYW3C=GS2.1.s1761624602$o1$g1$t1761624633$j29$l0$h0; loginUsername=helti.duari31%40gmail.com; loginPassword=bajaklaut; cf_clearance=.iwb2vrZoPVhjD98coWNgUN4Ka022OqwtrMUlzmJHLM-1763337495-1.2.1.1-wJJoQveIUAaTTfV0MIZfZ9pihMvZ2puKd6_Ib8yYWtDjtWnhd9yrT2SMq2N1v2FlqlgULUObAukqdwiqON1JwknGrH5IbQk2nj5EwvEJ7kJeO0mp1dDqrJaCgcHXz7aOWHESECNWyupYy9WYsyyTz9.ALPzMgj4FaDPsjf5WHsBc8mAUBqaUH6L.HENQn72KQJqiJ_fY.UF4o2S.iwp_s_kw109.9n5506rqvl77Byc; csrf_cookie_name=f6eb4859f29ca523fe3b4a1b700a604a; ci_session=t1rt08gdrju103s993oq4al0qg47q5l2
+priority
+u=0, i
+referer
+https://antrean.logammulia.com/
+sec-ch-ua
+"Chromium";v="142", "Google Chrome";v="142", "Not_A Brand";v="99"
+sec-ch-ua-arch
+"x86"
+sec-ch-ua-bitness
+"64"
+sec-ch-ua-full-version
+"142.0.7444.134"
+sec-ch-ua-full-version-list
+"Chromium";v="142.0.7444.134", "Google Chrome";v="142.0.7444.134", "Not_A Brand";v="99.0.0.0"
+sec-ch-ua-mobile
+?0
+sec-ch-ua-model
+""
+sec-ch-ua-platform
+"Linux"
+sec-ch-ua-platform-version
+""
+sec-fetch-dest
+document
+sec-fetch-mode
+navigate
+sec-fetch-site
+same-origin
+sec-fetch-user
+?1
+upgrade-insecure-requests
+1
+user-agent
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Request URL
+https://antrean.logammulia.com/login
+Request Method
+POST
+Status Code
+303 See Other
+Remote Address
+172.66.168.219:443
+Referrer Policy
+no-referrer-when-downgrade
+access-control-allow-headers
+Content-Type, Authorization, X-Requested-With
+access-control-allow-methods
+GET, POST, OPTIONS, PUT, DELETE
+access-control-allow-origin
+https://antrean.logammulia.com
+alt-svc
+h3=":443"; ma=86400
+cache-control
+no-store, no-cache, must-revalidate
+cf-cache-status
+DYNAMIC
+cf-ray
+99fafb096906797b-SIN
+content-security-policy
+upgrade-insecure-requests
+content-type
+text/html; charset=UTF-8
+date
+Mon, 17 Nov 2025 00:06:10 GMT
+expires
+Thu, 19 Nov 1981 08:52:00 GMT
+location
+https://antrean.logammulia.com/login
+panel
+hpanel
+permissions-policy
+accelerometer=(), camera=(), microphone=(), geolocation=()
+platform
+hostinger
+pragma
+no-cache
+priority
+u=0,i
+referrer-policy
+no-referrer-when-downgrade
+server
+cloudflare
+server-timing
+cfExtPri
+set-cookie
+csrf_cookie_name=cbc66a2b8b91ec5859fe9b648297c9a7; expires=Mon, 17-Nov-2025 00:11:10 GMT; Max-Age=300; path=/; SameSite=Strict; secure
+set-cookie
+ci_session=37ocqcuv648ak5pom4qhe7rp39crl5l3; expires=Mon, 17-Nov-2025 00:08:10 GMT; Max-Age=120; path=/; HttpOnly; SameSite=Lax; secure
+set-cookie
+loginUsername=helti.duari31%40gmail.com; expires=Tue, 17-Nov-2026 00:06:10 GMT; Max-Age=31536000; secure
+set-cookie
+loginPassword=bajaklaut; expires=Tue, 17-Nov-2026 00:06:10 GMT; Max-Age=31536000; secure
+strict-transport-security
+max-age=2592000; includeSubDomains; preload
+x-content-type-options
+nosniff
+x-powered-by
+PHP/8.1.31
+x-turbo-charged-by
+LiteSpeed
+:authority
+antrean.logammulia.com
+:method
+POST
+:path
+/login
+:scheme
+https
+accept
+text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+accept-encoding
+gzip, deflate, br, zstd
+accept-language
+id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7
+cache-control
+max-age=0
+content-length
+1822
+content-type
+application/x-www-form-urlencoded
+cookie
+_tt_enable_cookie=1; _ttp=01K8MG4D49712Q21Y3DEB288NR_.tt.1; _fbp=fb.1.1761624605498.18281812612592358; _hjSessionUser_1121314=eyJpZCI6ImNjZjFiODE1LTcxZWMtNTc0Ny05YTUyLTllNjA3YmMyNTdkNSIsImNyZWF0ZWQiOjE3NjE2MjQ2MDIwMzMsImV4aXN0aW5nIjp0cnVlfQ==; _gcl_au=1.1.1535391468.1761624601.947425733.1761624615.1761624615; _ga=GA1.2.451061643.1761624602; cto_bundle=-nw_6F9VTVNHMFppTGsyS21tUEJWNHRheWdLblVhcHV6aTQwUndVMGllN2M2djl3dFp0cFptJTJGVkdQUnN3TCUyRk1FdndaWE1xRWVIWFpyZVptN293cUwlMkZudTBsdFhPQWRpQTh5cmI5NG1XTUQlMkY2QTZ0NmROM0k1TDFqRG5ST09mcWFzWEttb0huMUJHTldlNnlQeG5LS3IxRmFxNXZ5ZUhuMEJvVjVuaVlLNnVsSFEyUSUzRA; ttcsid=1761624601757::YG27pRqueEYgWjfMBVPx.1.1761624625012.0; ttcsid_CR39QRJC77U85A2HF4A0=1761624601755::AyD3TNG6K_uaMqKmexl1.1.1761624625012.0; _ga_8XC1TTYW3C=GS2.1.s1761624602$o1$g1$t1761624633$j29$l0$h0; loginUsername=helti.duari31%40gmail.com; loginPassword=bajaklaut; cf_clearance=.iwb2vrZoPVhjD98coWNgUN4Ka022OqwtrMUlzmJHLM-1763337495-1.2.1.1-wJJoQveIUAaTTfV0MIZfZ9pihMvZ2puKd6_Ib8yYWtDjtWnhd9yrT2SMq2N1v2FlqlgULUObAukqdwiqON1JwknGrH5IbQk2nj5EwvEJ7kJeO0mp1dDqrJaCgcHXz7aOWHESECNWyupYy9WYsyyTz9.ALPzMgj4FaDPsjf5WHsBc8mAUBqaUH6L.HENQn72KQJqiJ_fY.UF4o2S.iwp_s_kw109.9n5506rqvl77Byc; csrf_cookie_name=f6eb4859f29ca523fe3b4a1b700a604a; ci_session=t1rt08gdrju103s993oq4al0qg47q5l2
+origin
+https://antrean.logammulia.com
+priority
+u=0, i
+referer
+https://antrean.logammulia.com/login
+sec-ch-ua
+"Chromium";v="142", "Google Chrome";v="142", "Not_A Brand";v="99"
+sec-ch-ua-arch
+"x86"
+sec-ch-ua-bitness
+"64"
+sec-ch-ua-full-version
+"142.0.7444.134"
+sec-ch-ua-full-version-list
+"Chromium";v="142.0.7444.134", "Google Chrome";v="142.0.7444.134", "Not_A Brand";v="99.0.0.0"
+sec-ch-ua-mobile
+?0
+sec-ch-ua-model
+""
+sec-ch-ua-platform
+"Linux"
+sec-ch-ua-platform-version
+""
+sec-fetch-dest
+document
+sec-fetch-mode
+navigate
+sec-fetch-site
+same-origin
+sec-fetch-user
+?1
+upgrade-insecure-requests
+1
+user-agent
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36
+
+username
+helti.duari31@gmail.com
+password
+bajaklaut
+token
+16a0783e943053e19d434cb25d613eb80c88c8f8733aaef8e15c5dd92e998e14
+csrf_test_name
+f6eb4859f29ca523fe3b4a1b700a604a
+g-recaptcha-response
+0cAFcWeA7scgZeoufgBsGDH3v9ei4uQac3qFJT6P-5k35n0hGqdqMb8ET8BJpQnHOroBYpWk5jS1iz72ixs0Ue-WinBF2aR2KoQshjIAZYOYkMc2kJgj7FAKhgHoAwdLhFKC8Qs22h7rc8o0vhkGV6dHK2h0TKbubWd1xQzTISouN4UY359nLb3KjU2M0ZZfxrcUF82LQ9t_YYU0swkzyVZbWOi62jjYF1t3hCw3XtgTxJACtDlsZo4LNj_QOkNJDNBFYicLEIFGF6NlNes9bH6vCqGm8yIKcmOB5yUZA08FO7QZmBnq8Fx-qOG16TZ3yvcwB3X3scv6z0X6XfyycfxVgPSHH-aLkySOo33x1MyQwda8SChDWQhu0F46KJb1Hf4WtCUJKzgjgr390JMySWMDLrOBgvrAijFTaSwdzHrOEaVoXOd74LcN5FQ5XQmX5N_yIQWTSHBe5HR6NS6hPGJU2Y1GHaWmWEb0tso8tUI5up4XaVQtwpOv0lm8n8mWsX3fC7glHVVDAC365KH4Dwg_UC0GYAvMSvGK8OlTNE6_GoW2QOArb_vJoCgMxZ1XJ_9cW2RwsqQa0OrcnOulndPejMBXrElatvWtUDXtCd2gy9ZxfYOaY_zgciYntwPPMqR7kF-Az0_W8ryrb-kVapJd657tfTORRdVhdJjbZJ0dbNwQRE7dX2qmB02tBqqoiz8xT51XprysfdtlIl2-GkqYXn2IPjTr3Rmu292yXcNN94yWiU2f4CM3qnJGgUn9aJVIa0di-Rtf_QXeogVVF9diBSy87LrxvQvFpa1i8pzKmEZ0EnXTg-2Da18SxSvUfvBkoFROvrlG74qM8r86uhgO-PbteLW5ndI78alrhmo7VxV8Lu3WPoXOvJ7oLDJAp8MPnmlr2shwsvcv8cxpvnQdUO_kNUv9x60P7hN8U4YlOmvjSwz5lLshsq5nsBCfHULpTX0R3kcqLY4abnfdf6sZzPtSteTdoOXdu2cKPB6WeY1w867tEmq1Wy4jhFi0pqurTyzmPpnhkyjyTp4-UWK_mwQdUx5DZRvsOzQ9cGRxt--kYnHcaKRgFN-Vnflz7d1mRjIY7_uX8dl3xzISP4Vrd65IpBV0khRL7Pb0PFOD47ZG7DH8ukJqXn6csPLf8zR-dGJx5wK_9yIJoPJk1yzl3prD0I4KD0UGbB5z1Kj-c_Yydkm6Ds0InjKUjtYVI5vBR-5URkZuSG7iaDXiXSSNGm6duiMjZHR9sCKq-UB2l1sWnLOc1UnDFmXwlgxuU0i_hoJH7di9RaOO_Cgbq-2yvgWyrkUHUJwZkwhvHSEdLW86DNU0mz1DiO-mrNvtP0K62la9OtB2_8Rsw-c2rIQFsxGVhVxbuIeMJWYapBXihLK17mLFtiKjlhnxqEqXaqJsSyWZbutrw5pAucMOQxC-s_jOkuB_hzjXmSu3ejhnR9y8dBJPEJipOBjrH9uIFGtuursacvOM7RwGiBE-ZID_aLt-J7JdAwmKcIxO7HnD7lGYUPQcYhLZjyAlpiZ2edJqb1MzvEj2zyyqFvCAiuixnH7-OfF05WuAocxDB-l0m5yOmfRkW_6JD1SJ6LgZBK-0K1E4MhUsZa
+rememberMe
+on
+
+
+
+
+Request URL
+https://antrean.logammulia.com/login
+Request Method
+GET
+Status Code
+307 Temporary Redirect
+Remote Address
+172.66.168.219:443
+Referrer Policy
+no-referrer-when-downgrade
+access-control-allow-headers
+Content-Type, Authorization, X-Requested-With
+access-control-allow-methods
+GET, POST, OPTIONS, PUT, DELETE
+access-control-allow-origin
+https://antrean.logammulia.com
+alt-svc
+h3=":443"; ma=86400
+cache-control
+no-store, no-cache, must-revalidate
+cf-cache-status
+DYNAMIC
+cf-ray
+99fafb0bf912797b-SIN
+content-security-policy
+upgrade-insecure-requests
+content-type
+text/html; charset=UTF-8
+date
+Mon, 17 Nov 2025 00:06:10 GMT
+expires
+Thu, 19 Nov 1981 08:52:00 GMT
+location
+https://antrean.logammulia.com/users
+panel
+hpanel
+permissions-policy
+accelerometer=(), camera=(), microphone=(), geolocation=()
+platform
+hostinger
+pragma
+no-cache
+priority
+u=0,i
+referrer-policy
+no-referrer-when-downgrade
+server
+cloudflare
+server-timing
+cfExtPri
+set-cookie
+csrf_cookie_name=cbc66a2b8b91ec5859fe9b648297c9a7; SameSite=Strict; Secure; Path=/; Max-Age=300; Expires=Mon, 17 Nov 2025 00:11:10 GMT
+strict-transport-security
+max-age=2592000; includeSubDomains; preload
+x-content-type-options
+nosniff
+x-powered-by
+PHP/8.1.31
+x-turbo-charged-by
+LiteSpeed
+:authority
+antrean.logammulia.com
+:method
+GET
+:path
+/login
+:scheme
+https
+accept
+text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+accept-encoding
+gzip, deflate, br, zstd
+accept-language
+id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7
+cache-control
+max-age=0
+cookie
+_tt_enable_cookie=1; _ttp=01K8MG4D49712Q21Y3DEB288NR_.tt.1; _fbp=fb.1.1761624605498.18281812612592358; _hjSessionUser_1121314=eyJpZCI6ImNjZjFiODE1LTcxZWMtNTc0Ny05YTUyLTllNjA3YmMyNTdkNSIsImNyZWF0ZWQiOjE3NjE2MjQ2MDIwMzMsImV4aXN0aW5nIjp0cnVlfQ==; _gcl_au=1.1.1535391468.1761624601.947425733.1761624615.1761624615; _ga=GA1.2.451061643.1761624602; cto_bundle=-nw_6F9VTVNHMFppTGsyS21tUEJWNHRheWdLblVhcHV6aTQwUndVMGllN2M2djl3dFp0cFptJTJGVkdQUnN3TCUyRk1FdndaWE1xRWVIWFpyZVptN293cUwlMkZudTBsdFhPQWRpQTh5cmI5NG1XTUQlMkY2QTZ0NmROM0k1TDFqRG5ST09mcWFzWEttb0huMUJHTldlNnlQeG5LS3IxRmFxNXZ5ZUhuMEJvVjVuaVlLNnVsSFEyUSUzRA; ttcsid=1761624601757::YG27pRqueEYgWjfMBVPx.1.1761624625012.0; ttcsid_CR39QRJC77U85A2HF4A0=1761624601755::AyD3TNG6K_uaMqKmexl1.1.1761624625012.0; _ga_8XC1TTYW3C=GS2.1.s1761624602$o1$g1$t1761624633$j29$l0$h0; loginUsername=helti.duari31%40gmail.com; loginPassword=bajaklaut; cf_clearance=.iwb2vrZoPVhjD98coWNgUN4Ka022OqwtrMUlzmJHLM-1763337495-1.2.1.1-wJJoQveIUAaTTfV0MIZfZ9pihMvZ2puKd6_Ib8yYWtDjtWnhd9yrT2SMq2N1v2FlqlgULUObAukqdwiqON1JwknGrH5IbQk2nj5EwvEJ7kJeO0mp1dDqrJaCgcHXz7aOWHESECNWyupYy9WYsyyTz9.ALPzMgj4FaDPsjf5WHsBc8mAUBqaUH6L.HENQn72KQJqiJ_fY.UF4o2S.iwp_s_kw109.9n5506rqvl77Byc; csrf_cookie_name=cbc66a2b8b91ec5859fe9b648297c9a7; ci_session=37ocqcuv648ak5pom4qhe7rp39crl5l3
+priority
+u=0, i
+referer
+https://antrean.logammulia.com/login
+sec-ch-ua
+"Chromium";v="142", "Google Chrome";v="142", "Not_A Brand";v="99"
+sec-ch-ua-arch
+"x86"
+sec-ch-ua-bitness
+"64"
+sec-ch-ua-full-version
+"142.0.7444.134"
+sec-ch-ua-full-version-list
+"Chromium";v="142.0.7444.134", "Google Chrome";v="142.0.7444.134", "Not_A Brand";v="99.0.0.0"
+sec-ch-ua-mobile
+?0
+sec-ch-ua-model
+""
+sec-ch-ua-platform
+"Linux"
+sec-ch-ua-platform-version
+""
+sec-fetch-dest
+document
+sec-fetch-mode
+navigate
+sec-fetch-site
+same-origin
+sec-fetch-user
+?1
+upgrade-insecure-requests
+1
+user-agent
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36
+
+
+Request URL
+https://antrean.logammulia.com/users
+Request Method
+GET
+Status Code
+200 OK
+Remote Address
+172.66.168.219:443
+Referrer Policy
+no-referrer-when-downgrade
+alt-svc
+h3=":443"; ma=86400
+cache-control
+no-store, no-cache, must-revalidate
+cf-cache-status
+DYNAMIC
+cf-ray
+99fafb0c7917797b-SIN
+content-encoding
+br
+content-security-policy
+upgrade-insecure-requests
+content-type
+text/html; charset=UTF-8
+date
+Mon, 17 Nov 2025 00:06:10 GMT
+expires
+Thu, 19 Nov 1981 08:52:00 GMT
+panel
+hpanel
+platform
+hostinger
+pragma
+no-cache
+priority
+u=0,i
+server
+cloudflare
+server-timing
+cfExtPri
+set-cookie
+csrf_cookie_name=cbc66a2b8b91ec5859fe9b648297c9a7; SameSite=Strict; Secure; Path=/; Max-Age=300; Expires=Mon, 17 Nov 2025 00:11:10 GMT
+strict-transport-security
+max-age=2592000; includeSubDomains; preload
+vary
+Accept-Encoding
+x-content-type-options
+nosniff
+x-powered-by
+PHP/8.1.31
+x-turbo-charged-by
+LiteSpeed
+:authority
+antrean.logammulia.com
+:method
+GET
+:path
+/users
+:scheme
+https
+accept
+text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+accept-encoding
+gzip, deflate, br, zstd
+accept-language
+id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7
+cache-control
+max-age=0
+cookie
+_tt_enable_cookie=1; _ttp=01K8MG4D49712Q21Y3DEB288NR_.tt.1; _fbp=fb.1.1761624605498.18281812612592358; _hjSessionUser_1121314=eyJpZCI6ImNjZjFiODE1LTcxZWMtNTc0Ny05YTUyLTllNjA3YmMyNTdkNSIsImNyZWF0ZWQiOjE3NjE2MjQ2MDIwMzMsImV4aXN0aW5nIjp0cnVlfQ==; _gcl_au=1.1.1535391468.1761624601.947425733.1761624615.1761624615; _ga=GA1.2.451061643.1761624602; cto_bundle=-nw_6F9VTVNHMFppTGsyS21tUEJWNHRheWdLblVhcHV6aTQwUndVMGllN2M2djl3dFp0cFptJTJGVkdQUnN3TCUyRk1FdndaWE1xRWVIWFpyZVptN293cUwlMkZudTBsdFhPQWRpQTh5cmI5NG1XTUQlMkY2QTZ0NmROM0k1TDFqRG5ST09mcWFzWEttb0huMUJHTldlNnlQeG5LS3IxRmFxNXZ5ZUhuMEJvVjVuaVlLNnVsSFEyUSUzRA; ttcsid=1761624601757::YG27pRqueEYgWjfMBVPx.1.1761624625012.0; ttcsid_CR39QRJC77U85A2HF4A0=1761624601755::AyD3TNG6K_uaMqKmexl1.1.1761624625012.0; _ga_8XC1TTYW3C=GS2.1.s1761624602$o1$g1$t1761624633$j29$l0$h0; loginUsername=helti.duari31%40gmail.com; loginPassword=bajaklaut; cf_clearance=.iwb2vrZoPVhjD98coWNgUN4Ka022OqwtrMUlzmJHLM-1763337495-1.2.1.1-wJJoQveIUAaTTfV0MIZfZ9pihMvZ2puKd6_Ib8yYWtDjtWnhd9yrT2SMq2N1v2FlqlgULUObAukqdwiqON1JwknGrH5IbQk2nj5EwvEJ7kJeO0mp1dDqrJaCgcHXz7aOWHESECNWyupYy9WYsyyTz9.ALPzMgj4FaDPsjf5WHsBc8mAUBqaUH6L.HENQn72KQJqiJ_fY.UF4o2S.iwp_s_kw109.9n5506rqvl77Byc; csrf_cookie_name=cbc66a2b8b91ec5859fe9b648297c9a7; ci_session=37ocqcuv648ak5pom4qhe7rp39crl5l3
+priority
+u=0, i
+referer
+https://antrean.logammulia.com/login
+sec-ch-ua
+"Chromium";v="142", "Google Chrome";v="142", "Not_A Brand";v="99"
+sec-ch-ua-arch
+"x86"
+sec-ch-ua-bitness
+"64"
+sec-ch-ua-full-version
+"142.0.7444.134"
+sec-ch-ua-full-version-list
+"Chromium";v="142.0.7444.134", "Google Chrome";v="142.0.7444.134", "Not_A Brand";v="99.0.0.0"
+sec-ch-ua-mobile
+?0
+sec-ch-ua-model
+""
+sec-ch-ua-platform
+"Linux"
+sec-ch-ua-platform-version
+""
+sec-fetch-dest
+document
+sec-fetch-mode
+navigate
+sec-fetch-site
+same-origin
+sec-fetch-user
+?1
+upgrade-insecure-requests
+1
+user-agent
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36
+
+
+
+Request URL
+https://antrean.logammulia.com/antrean
+Request Method
+GET
+Status Code
+200 OK
+Remote Address
+172.66.168.219:443
+Referrer Policy
+strict-origin-when-cross-origin
+access-control-allow-headers
+Content-Type, Authorization, X-Requested-With
+access-control-allow-methods
+GET, POST, OPTIONS, PUT, DELETE
+access-control-allow-origin
+https://antrean.logammulia.com
+alt-svc
+h3=":443"; ma=86400
+cache-control
+no-store, no-cache, must-revalidate
+cf-cache-status
+DYNAMIC
+cf-ray
+99fafed5d8cd449c-SIN
+content-encoding
+br
+content-security-policy
+upgrade-insecure-requests
+content-type
+text/html; charset=UTF-8
+date
+Mon, 17 Nov 2025 00:08:45 GMT
+expires
+Thu, 19 Nov 1981 08:52:00 GMT
+panel
+hpanel
+permissions-policy
+accelerometer=(), camera=(), microphone=(), geolocation=()
+platform
+hostinger
+pragma
+no-cache
+priority
+u=0,i
+referrer-policy
+no-referrer-when-downgrade
+server
+cloudflare
+server-timing
+cfExtPri
+set-cookie
+csrf_cookie_name=1793590276746135800b4f56f68c7516; SameSite=Strict; Secure; Path=/; Max-Age=300; Expires=Mon, 17 Nov 2025 00:13:45 GMT
+strict-transport-security
+max-age=2592000; includeSubDomains; preload
+vary
+Accept-Encoding
+x-content-type-options
+nosniff
+x-powered-by
+PHP/8.1.31
+x-turbo-charged-by
+LiteSpeed
+:authority
+antrean.logammulia.com
+:method
+GET
+:path
+/antrean
+:scheme
+https
+accept
+text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+accept-encoding
+gzip, deflate, br, zstd
+accept-language
+id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7
+cookie
+_tt_enable_cookie=1; _ttp=01K8MG4D49712Q21Y3DEB288NR_.tt.1; _fbp=fb.1.1761624605498.18281812612592358; _hjSessionUser_1121314=eyJpZCI6ImNjZjFiODE1LTcxZWMtNTc0Ny05YTUyLTllNjA3YmMyNTdkNSIsImNyZWF0ZWQiOjE3NjE2MjQ2MDIwMzMsImV4aXN0aW5nIjp0cnVlfQ==; _gcl_au=1.1.1535391468.1761624601.947425733.1761624615.1761624615; _ga=GA1.2.451061643.1761624602; cto_bundle=-nw_6F9VTVNHMFppTGsyS21tUEJWNHRheWdLblVhcHV6aTQwUndVMGllN2M2djl3dFp0cFptJTJGVkdQUnN3TCUyRk1FdndaWE1xRWVIWFpyZVptN293cUwlMkZudTBsdFhPQWRpQTh5cmI5NG1XTUQlMkY2QTZ0NmROM0k1TDFqRG5ST09mcWFzWEttb0huMUJHTldlNnlQeG5LS3IxRmFxNXZ5ZUhuMEJvVjVuaVlLNnVsSFEyUSUzRA; ttcsid=1761624601757::YG27pRqueEYgWjfMBVPx.1.1761624625012.0; ttcsid_CR39QRJC77U85A2HF4A0=1761624601755::AyD3TNG6K_uaMqKmexl1.1.1761624625012.0; _ga_8XC1TTYW3C=GS2.1.s1761624602$o1$g1$t1761624633$j29$l0$h0; loginUsername=helti.duari31%40gmail.com; loginPassword=bajaklaut; cf_clearance=.iwb2vrZoPVhjD98coWNgUN4Ka022OqwtrMUlzmJHLM-1763337495-1.2.1.1-wJJoQveIUAaTTfV0MIZfZ9pihMvZ2puKd6_Ib8yYWtDjtWnhd9yrT2SMq2N1v2FlqlgULUObAukqdwiqON1JwknGrH5IbQk2nj5EwvEJ7kJeO0mp1dDqrJaCgcHXz7aOWHESECNWyupYy9WYsyyTz9.ALPzMgj4FaDPsjf5WHsBc8mAUBqaUH6L.HENQn72KQJqiJ_fY.UF4o2S.iwp_s_kw109.9n5506rqvl77Byc; ci_session=ffiajvfaudm9kpdd0armtfnfhg1ip47h; csrf_cookie_name=1793590276746135800b4f56f68c7516
+priority
+u=0, i
+referer
+https://antrean.logammulia.com/users
+sec-ch-ua
+"Chromium";v="142", "Google Chrome";v="142", "Not_A Brand";v="99"
+sec-ch-ua-arch
+"x86"
+sec-ch-ua-bitness
+"64"
+sec-ch-ua-full-version
+"142.0.7444.134"
+sec-ch-ua-full-version-list
+"Chromium";v="142.0.7444.134", "Google Chrome";v="142.0.7444.134", "Not_A Brand";v="99.0.0.0"
+sec-ch-ua-mobile
+?0
+sec-ch-ua-model
+""
+sec-ch-ua-platform
+"Linux"
+sec-ch-ua-platform-version
+""
+sec-fetch-dest
+document
+sec-fetch-mode
+navigate
+sec-fetch-site
+same-origin
+sec-fetch-user
+?1
+upgrade-insecure-requests
+1
+user-agent
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36
+
+
+
+
+
+Request URL
+https://antrean.logammulia.com/antrean?site=23&t=1f6e58933e125b720f34db6827a68cf2ac69498e118b98b9bf67abf5dcf2c4e8
+Request Method
+GET
+Status Code
+200 OK
+Remote Address
+172.66.168.219:443
+Referrer Policy
+no-referrer-when-downgrade
+access-control-allow-headers
+Content-Type, Authorization, X-Requested-With
+access-control-allow-methods
+GET, POST, OPTIONS, PUT, DELETE
+access-control-allow-origin
+https://antrean.logammulia.com
+alt-svc
+h3=":443"; ma=86400
+cache-control
+no-store, no-cache, must-revalidate
+cf-cache-status
+DYNAMIC
+cf-ray
+99faffd3aee68811-SIN
+content-encoding
+br
+content-security-policy
+upgrade-insecure-requests
+content-type
+text/html; charset=UTF-8
+date
+Mon, 17 Nov 2025 00:09:26 GMT
+expires
+Thu, 19 Nov 1981 08:52:00 GMT
+panel
+hpanel
+permissions-policy
+accelerometer=(), camera=(), microphone=(), geolocation=()
+platform
+hostinger
+pragma
+no-cache
+priority
+u=0,i
+referrer-policy
+no-referrer-when-downgrade
+server
+cloudflare
+server-timing
+cfExtPri
+set-cookie
+csrf_cookie_name=1793590276746135800b4f56f68c7516; SameSite=Strict; Secure; Path=/; Max-Age=300; Expires=Mon, 17 Nov 2025 00:14:26 GMT
+set-cookie
+ci_session=o3r9t08pcaa74qv3qhcrafuvs3kra8b0; HttpOnly; SameSite=Lax; Secure; Path=/; Max-Age=120; Expires=Mon, 17 Nov 2025 00:11:26 GMT
+strict-transport-security
+max-age=2592000; includeSubDomains; preload
+vary
+Accept-Encoding
+x-content-type-options
+nosniff
+x-powered-by
+PHP/8.1.31
+x-turbo-charged-by
+LiteSpeed
+:authority
+antrean.logammulia.com
+:method
+GET
+:path
+/antrean?site=23&t=1f6e58933e125b720f34db6827a68cf2ac69498e118b98b9bf67abf5dcf2c4e8
+:scheme
+https
+accept
+text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+accept-encoding
+gzip, deflate, br, zstd
+accept-language
+id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7
+cookie
+_tt_enable_cookie=1; _ttp=01K8MG4D49712Q21Y3DEB288NR_.tt.1; _fbp=fb.1.1761624605498.18281812612592358; _hjSessionUser_1121314=eyJpZCI6ImNjZjFiODE1LTcxZWMtNTc0Ny05YTUyLTllNjA3YmMyNTdkNSIsImNyZWF0ZWQiOjE3NjE2MjQ2MDIwMzMsImV4aXN0aW5nIjp0cnVlfQ==; _gcl_au=1.1.1535391468.1761624601.947425733.1761624615.1761624615; _ga=GA1.2.451061643.1761624602; cto_bundle=-nw_6F9VTVNHMFppTGsyS21tUEJWNHRheWdLblVhcHV6aTQwUndVMGllN2M2djl3dFp0cFptJTJGVkdQUnN3TCUyRk1FdndaWE1xRWVIWFpyZVptN293cUwlMkZudTBsdFhPQWRpQTh5cmI5NG1XTUQlMkY2QTZ0NmROM0k1TDFqRG5ST09mcWFzWEttb0huMUJHTldlNnlQeG5LS3IxRmFxNXZ5ZUhuMEJvVjVuaVlLNnVsSFEyUSUzRA; ttcsid=1761624601757::YG27pRqueEYgWjfMBVPx.1.1761624625012.0; ttcsid_CR39QRJC77U85A2HF4A0=1761624601755::AyD3TNG6K_uaMqKmexl1.1.1761624625012.0; _ga_8XC1TTYW3C=GS2.1.s1761624602$o1$g1$t1761624633$j29$l0$h0; loginUsername=helti.duari31%40gmail.com; loginPassword=bajaklaut; cf_clearance=.iwb2vrZoPVhjD98coWNgUN4Ka022OqwtrMUlzmJHLM-1763337495-1.2.1.1-wJJoQveIUAaTTfV0MIZfZ9pihMvZ2puKd6_Ib8yYWtDjtWnhd9yrT2SMq2N1v2FlqlgULUObAukqdwiqON1JwknGrH5IbQk2nj5EwvEJ7kJeO0mp1dDqrJaCgcHXz7aOWHESECNWyupYy9WYsyyTz9.ALPzMgj4FaDPsjf5WHsBc8mAUBqaUH6L.HENQn72KQJqiJ_fY.UF4o2S.iwp_s_kw109.9n5506rqvl77Byc; ci_session=ffiajvfaudm9kpdd0armtfnfhg1ip47h; csrf_cookie_name=1793590276746135800b4f56f68c7516
+priority
+u=0, i
+referer
+https://antrean.logammulia.com/antrean
+sec-ch-ua
+"Chromium";v="142", "Google Chrome";v="142", "Not_A Brand";v="99"
+sec-ch-ua-arch
+"x86"
+sec-ch-ua-bitness
+"64"
+sec-ch-ua-full-version
+"142.0.7444.134"
+sec-ch-ua-full-version-list
+"Chromium";v="142.0.7444.134", "Google Chrome";v="142.0.7444.134", "Not_A Brand";v="99.0.0.0"
+sec-ch-ua-mobile
+?0
+sec-ch-ua-model
+""
+sec-ch-ua-platform
+"Linux"
+sec-ch-ua-platform-version
+""
+sec-fetch-dest
+document
+sec-fetch-mode
+navigate
+sec-fetch-site
+same-origin
+sec-fetch-user
+?1
+upgrade-insecure-requests
+1
+user-agent
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36
+
+site
+23
+t  
+1f6e58933e125b720f34db6827a68cf2ac69498e118b98b9bf67abf5dcf2c4e8
+
+payload yang di kirim ke api endpointnya
+
+csrf_test_name
+cf401b4779fcd45d7468760675a4de6d
+wakda
+11
+id_cabang
+3
+jam_slot
+07:00:00
+waktu
+token
+4ec5ab83aa3995c2c7603b447354eac5094e945ed2370096121fc6a7e9bdbca3
+csrf_test_name
+cf401b4779fcd45d7468760675a4de6d
+g-recaptcha-response
+0cAFcWeA5IM40hvWvjZO_UhKsD1PRl3axVPfIpFLqK66XTEdA8R7iV7FBd1nEVbIW1r1mxzjSN3YOiSjs-yLAT2UtIhyAUv_WCNtwh0zqyfyRwB8uYJQ7W8Nj3w5h-sZ5bSl7d9VTsd4f6bdAjS3maT9AH-iWO5PnD-925XM0rnfPXuB9PqCUoYYwnGT_aLIzVMyfe9ldA_G67lVh2ame1ckHaqezSIUcysrNYbk2nM73fbtQyuQAiGOa80631P_iDcbZBsdsFEwLwKzCLunp8sWwQiE8i4-zKj2GV_JrV-EY-PlUcRLCRp_5Ro0fNnflvKUCHZ2Fc3llx9UNzwnBqupWMcoyP36vwCnD-AbbGoM1j566utdsgYbv9D9a3d6q_OcsAC0dg-0FIH6GIxZ1dDcB-KOhWHD4hSfh3yTDFHGkeBYUjg68j2v7zCVXysrlC0Z0n1VRiAaaIRz_w7hgSlO2G32hwNFMpwfOi9bZO5n0_GkPWx4FixPoCzDlBwcQqQDz-3tUjTWlkSnvKemLONNLcw8Xvds3R4xSo95GaKYI_87nzdQCI3ETtKT2TgZGvzPGwCVAWc3WSrLgVKA4hZ5t74BpIy11GILtbGmlQ_6XLv_HK2FtVHQ_Uip1nIKjQGKsnzdEuUWAJ2R9MmiYDpxDiVa_qVAwnyMeMOmv1BnBq6zGd_OC6MqTJjdCoDx5xsj666yV06DX-R0mrR8g6Hu-lKSZgq41ZPc1bPkPV00eNPpwCTpF9S5Mygzx-bIdvxzZe_CDi0zoovDIcTRqrVJBQumVa6PM03v-BxVUcpzc9oAw5L64vL1JapmUFImUJ1cjtxFxVACjmZ1sIg-FSX8nXnj5Wea4TVPjajkrycHz9kQmaakhK9hwZTP59XuGp_UK8YwX97wQlo-GYBrJH2Gau5fvB089aUAjK5G9uVtSWTTvw4v5O-7S8Ih5u7ebG8oljVBHYiaFooQ-F80N2ifieyW7mXYU4q9G2GXIq6n0kOwNLtYo4GP8uwEAk1JVApuR7oLrm9YSnjGZVzvddS2uOQ_eFXCnzlcDtDoPGnkJ0EVIk_yIh-76dnKXi7itU2rZRwXZ52GUgNc1X1a7qWiYUME9b0gFDaJNgRZfjyZuo0fLFyGE9-wDv5TnlsegIpUB6sZrI_pOweD55F1a7MoL5Y4vJmlqhHzJ6UU90PzvTHLYB7hQFYWt9fhG5RpMsh6bAKErCCKWk5lhHCOKPUydupqBt6ELD43-3FP8mH05Xkp55XFC0yzKIf7PqKXdZ0S7YC59InBDfogwUUP8cG-vRUUedzatns3R2ecnVOslJA_4Gy5XZrdpWqgmtfSxR6SPc9JXuTYNFCQi3j6XEZH4zkX7_-CwqcmRylRO7vOOoZSUQA7gK3dp0dYR_EU--LzNdHYhgiQrMXYnY458I16TYxUZxMAvVaNst6msej-ejfYIH8jcjPilGYSACRwcaqH52-f9RlUlFd6g7k5ZWV7hUuKJ4yILfSxRghmR1CW1BaRq69oVdebv7wB3hCsARhnBGtugbAnVExk-KIMn4dC8PSAU0s5XQdotxLM94JC4nF5O6I8R0zdJcEYWaaKR8k4cn3D5tci_P02vKGsUmuzQamzoPWvXFQw
+
+
+Request URL
+https://antrean.logammulia.com/antrean-ambil
+Request Method
+POST
+Status Code
+303 See Other
+Remote Address
+172.66.168.219:443
+Referrer Policy
+no-referrer-when-downgrade
+access-control-allow-headers
+Content-Type, Authorization, X-Requested-With
+access-control-allow-methods
+GET, POST, OPTIONS, PUT, DELETE
+access-control-allow-origin
+https://antrean.logammulia.com
+alt-svc
+h3=":443"; ma=86400
+cache-control
+no-store, no-cache, must-revalidate
+cf-cache-status
+DYNAMIC
+cf-ray
+9a0b6daabf239cc9-SIN
+content-security-policy
+upgrade-insecure-requests
+content-type
+text/html; charset=UTF-8
+date
+Wed, 19 Nov 2025 00:00:39 GMT
+expires
+Thu, 19 Nov 1981 08:52:00 GMT
+location
+https://antrean.logammulia.com/antrean
+panel
+hpanel
+permissions-policy
+accelerometer=(), camera=(), microphone=(), geolocation=()
+platform
+hostinger
+pragma
+no-cache
+priority
+u=0,i
+referrer-policy
+no-referrer-when-downgrade
+server
+cloudflare
+server-timing
+cfExtPri
+set-cookie
+csrf_cookie_name=d388438514ab44ba679de484e0dd18bc; SameSite=Strict; Secure; Path=/; Max-Age=300; Expires=Wed, 19 Nov 2025 00:05:39 GMT
+strict-transport-security
+max-age=2592000; includeSubDomains; preload
+x-content-type-options
+nosniff
+x-powered-by
+PHP/8.1.31
+x-turbo-charged-by
+LiteSpeed
+:authority
+antrean.logammulia.com
+:method
+POST
+:path
+/antrean-ambil
+:scheme
+https
+accept
+text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+accept-encoding
+gzip, deflate, br, zstd
+accept-language
+id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7
+cache-control
+max-age=0
+content-length
+1874
+content-type
+application/x-www-form-urlencoded
+cookie
+_tt_enable_cookie=1; _ttp=01K8MG4D49712Q21Y3DEB288NR_.tt.1; _fbp=fb.1.1761624605498.18281812612592358; _hjSessionUser_1121314=eyJpZCI6ImNjZjFiODE1LTcxZWMtNTc0Ny05YTUyLTllNjA3YmMyNTdkNSIsImNyZWF0ZWQiOjE3NjE2MjQ2MDIwMzMsImV4aXN0aW5nIjp0cnVlfQ==; _gcl_au=1.1.1535391468.1761624601.947425733.1761624615.1761624615; _ga=GA1.2.451061643.1761624602; cto_bundle=-nw_6F9VTVNHMFppTGsyS21tUEJWNHRheWdLblVhcHV6aTQwUndVMGllN2M2djl3dFp0cFptJTJGVkdQUnN3TCUyRk1FdndaWE1xRWVIWFpyZVptN293cUwlMkZudTBsdFhPQWRpQTh5cmI5NG1XTUQlMkY2QTZ0NmROM0k1TDFqRG5ST09mcWFzWEttb0huMUJHTldlNnlQeG5LS3IxRmFxNXZ5ZUhuMEJvVjVuaVlLNnVsSFEyUSUzRA; ttcsid=1761624601757::YG27pRqueEYgWjfMBVPx.1.1761624625012.0; ttcsid_CR39QRJC77U85A2HF4A0=1761624601755::AyD3TNG6K_uaMqKmexl1.1.1761624625012.0; _ga_8XC1TTYW3C=GS2.1.s1761624602$o1$g1$t1761624633$j29$l0$h0; cf_clearance=yEI3hmMfbLwk5oVMobkJdZo2odze3qfHMHwqP5bjPsg-1763509827-1.2.1.1-UH2DDIGid14TReRciG1YZGY5pBQjLDgZFpk05t8LXopfwA3GQNIKvnTJAKX_CXtWGzscCc1dGXPvuuT5YFDLwjQtfpE.gRtNXei1mDPjQP7OYFxFuM3HsTqNzHdhSZQWNYzDrxx2TlX69PisyJwfNAt0tuZe0iur9Smvc8xyAWWs5m823BDjNiQ.JOxI0rKeDaCXqF_MEadxLbq8TpVn5oD4vZPUQYugP_BEbGn4_kQ; loginUsername=085703846460; loginPassword=%40NovalFr210; csrf_cookie_name=cf401b4779fcd45d7468760675a4de6d; ci_session=i0d6dfrtvubvrdo8k8u12lns83nku0qo
+origin
+https://antrean.logammulia.com
+priority
+u=0, i
+referer
+https://antrean.logammulia.com/antrean?site=3&t=4ec5ab83aa3995c2c7603b447354eac5094e945ed2370096121fc6a7e9bdbca3
+sec-ch-ua
+"Chromium";v="142", "Google Chrome";v="142", "Not_A Brand";v="99"
+sec-ch-ua-arch
+"x86"
+sec-ch-ua-bitness
+"64"
+sec-ch-ua-full-version
+"142.0.7444.175"
+sec-ch-ua-full-version-list
+"Chromium";v="142.0.7444.175", "Google Chrome";v="142.0.7444.175", "Not_A Brand";v="99.0.0.0"
+sec-ch-ua-mobile
+?0
+sec-ch-ua-model
+""
+sec-ch-ua-platform
+"Linux"
+sec-ch-ua-platform-version
+""
+sec-fetch-dest
+document
+sec-fetch-mode
+navigate
+sec-fetch-site
+same-origin
+sec-fetch-user
+?1
+upgrade-insecure-requests
+1
+user-agent
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36
+
+cokie nya hanya bisa bertahan 5 menit dan captcha nya hanya bertahan 1menit
+
+_fbp	fb.1.1761624605498.18281812612592358	.logammulia.com	/	2026-01-26T04:10:26.000Z	40			Lax			Medium
+_ga	GA1.2.451061643.1761624602	.logammulia.com	/	2026-12-02T04:10:19.987Z	29						Medium
+_ga_8XC1TTYW3C	GS2.1.s1761624602$o1$g1$t1761624633$j29$l0$h0	.logammulia.com	/	2026-12-02T04:10:33.901Z	59						Medium
+_gcl_au	1.1.1535391468.1761624601.947425733.1761624615.1761624615	.logammulia.com	/	2026-01-26T04:10:01.000Z	64						Medium
+_hjSessionUser_1121314	eyJpZCI6ImNjZjFiODE1LTcxZWMtNTc0Ny05YTUyLTllNjA3YmMyNTdkNSIsImNyZWF0ZWQiOjE3NjE2MjQ2MDIwMzMsImV4aXN0aW5nIjp0cnVlfQ==	.logammulia.com	/	2026-10-28T04:10:20.000Z	138		✓	None			Medium
+_tt_enable_cookie	1	.logammulia.com	/	2026-11-22T04:10:20.000Z	18						Medium
+_ttp	01K8MG4D49712Q21Y3DEB288NR_.tt.1	.logammulia.com	/	2026-11-22T04:10:20.000Z	36						Medium
+cf_clearance	yEI3hmMfbLwk5oVMobkJdZo2odze3qfHMHwqP5bjPsg-1763509827-1.2.1.1-UH2DDIGid14TReRciG1YZGY5pBQjLDgZFpk05t8LXopfwA3GQNIKvnTJAKX_CXtWGzscCc1dGXPvuuT5YFDLwjQtfpE.gRtNXei1mDPjQP7OYFxFuM3HsTqNzHdhSZQWNYzDrxx2TlX69PisyJwfNAt0tuZe0iur9Smvc8xyAWWs5m823BDjNiQ.JOxI0rKeDaCXqF_MEadxLbq8TpVn5oD4vZPUQYugP_BEbGn4_kQ	.logammulia.com	/	2026-11-18T23:50:27.922Z	310	✓	✓	None	https://logammulia.com		Medium
+ci_session	i0d6dfrtvubvrdo8k8u12lns83nku0qo	antrean.logammulia.com	/	2025-11-19T00:01:58.836Z	42	✓	✓	Lax			Medium
+csrf_cookie_name	cf401b4779fcd45d7468760675a4de6d	antrean.logammulia.com	/	2025-11-19T00:04:59.861Z	48		✓	Strict			Medium
+cto_bundle	-nw_6F9VTVNHMFppTGsyS21tUEJWNHRheWdLblVhcHV6aTQwUndVMGllN2M2djl3dFp0cFptJTJGVkdQUnN3TCUyRk1FdndaWE1xRWVIWFpyZVptN293cUwlMkZudTBsdFhPQWRpQTh5cmI5NG1XTUQlMkY2QTZ0NmROM0k1TDFqRG5ST09mcWFzWEttb0huMUJHTldlNnlQeG5LS3IxRmFxNXZ5ZUhuMEJvVjVuaVlLNnVsSFEyUSUzRA	.logammulia.com	/	2026-11-27T14:10:20.000Z	260						Medium
+loginPassword	%40NovalFr210	antrean.logammulia.com	/	2026-11-18T23:59:08.670Z	26		✓				Medium
+loginUsername	085703846460	antrean.logammulia.com	/	2026-11-18T23:59:08.669Z	25		✓				Medium
+ttcsid	1761624601757::YG27pRqueEYgWjfMBVPx.1.1761624625012.0	.logammulia.com	/	2026-11-22T04:10:25.000Z	59						Medium
+ttcsid_CR39QRJC77U85A2HF4A0	1761624601755::AyD3TNG6K_uaMqKmexl1.1.1761624625012.0	.logammulia.com	/	2026-11-22T04:10:25.000Z	80						Medium
+csrf_cookie_name	d388438514ab44ba679de484e0dd18bc	antrean.logammulia.com	/	5 min	134		✓	Strict			Medium
