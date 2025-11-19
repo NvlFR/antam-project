@@ -12,6 +12,7 @@
   "dependencies": {
     "axios": "^1.13.2",
     "chalk": "^4.1.2",
+    "cli-table3": "^0.6.5",
     "dotenv": "^17.2.3",
     "inquirer": "^8.2.7",
     "playwright": "^1.56.1"
