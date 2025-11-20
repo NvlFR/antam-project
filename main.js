@@ -11,6 +11,9 @@ const { loginAllAccounts } = require("./src/auth");
 const { checkQuotaAll } = require("./src/war");
 const { manageSettings, loadSettings } = require("./src/settings");
 const { testProxy } = require("./src/proxyTester");
+const { startAutoMonitor } = require("./src/autoMonitor");
+const { startSniperMode } = require("./src/sniper");
+const { startSniperAPI } = require("./src/sniperAPI"); // Pastikan file ini ada
 
 async function main() {
   console.clear();
@@ -35,7 +38,7 @@ async function main() {
   // 2. Render Menu Manual
   console.log(chalk.white("1. Login Semua Akun"));
   console.log(chalk.white("2. Cek Kuota & Restok"));
-  console.log(chalk.white("3. Test Perang Restok (Manual Trigger)")); // Sudah aktif
+  console.log(chalk.white("3. SNIPER MODE (Auto-Wait & Fire)"));
   console.log(chalk.white("4. Tambah Akun"));
   console.log(chalk.white("5. Cek & Hapus Akun"));
   console.log(chalk.white("6. Monitor Otomatis"));
@@ -68,12 +71,12 @@ async function main() {
       break;
 
     case "2":
-      await checkQuotaAll(loadAccounts());
+      await checkQuotaAll(); // Tidak perlu parameter, dia load sendiri
       await pause();
       break;
 
     case "3":
-      // Ambil daftar akun
+      // --- LOGIC SNIPER MODE ---
       const accountsWar = loadAccounts();
       if (accountsWar.length === 0) {
         console.log(chalk.red("⚠️  Belum ada akun! Tambah dulu."));
@@ -81,46 +84,54 @@ async function main() {
         break;
       }
 
-      // Pilih Akun untuk War
+      // 1. Pilih Akun
       const { selectedAccountIndex } = await inquirer.prompt([
         {
           type: "list",
           name: "selectedAccountIndex",
-          message: "Pilih Akun untuk Eksekusi War:",
+          message: "Pilih Akun Sniper:",
           choices: accountsWar.map((acc, idx) => ({
-            name: `${idx + 1}. ${acc.email} (${acc.branch})`,
+            name: acc.email,
             value: idx,
           })),
         },
       ]);
+      const sniperAccount = accountsWar[selectedAccountIndex];
 
-      const targetAccount = accountsWar[selectedAccountIndex];
-
-      // Konfirmasi
-      console.log(
-        chalk.yellow(
-          `\n⚠️  PERINGATAN: Bot akan mencoba mengambil antrean BENERAN untuk akun ${targetAccount.email}.`
-        )
-      );
-      console.log(
-        chalk.yellow(
-          `   Pastikan jam operasional sudah buka atau ini hanya akan gagal/penuh.`
-        )
-      );
-
-      const { confirm } = await inquirer.prompt([
+      // 2. Pilih Cabang Target
+      const { branchId } = await inquirer.prompt([
         {
-          type: "confirm",
-          name: "confirm",
-          message: "Lanjut Eksekusi?",
-          default: false,
+          type: "input",
+          name: "branchId",
+          message: "Masukkan ID Cabang Target (contoh: 6 untuk Gd. Antam):",
+          default: sniperAccount.branch || "6", // Default ke cabang akun atau 6
         },
       ]);
 
-      if (confirm) {
-        await executeWarSingle(targetAccount, targetAccount.branch);
+      // 3. Pilih Metode (Browser vs API)
+      const { mode } = await inquirer.prompt([
+        {
+          type: "list",
+          name: "mode",
+          message: "Pilih Metode Perang:",
+          choices: [
+            {
+              name: "Browser Sniper (Visual, Lebih Aman, Refresh)",
+              value: "browser",
+            },
+            {
+              name: "API Hybrid (Experimental, Super Cepat, Blind Fire)",
+              value: "api",
+            },
+          ],
+        },
+      ]);
+
+      // 4. Eksekusi
+      if (mode === "browser") {
+        await startSniperMode(sniperAccount, branchId);
       } else {
-        console.log("Dibatalkan.");
+        await startSniperAPI(sniperAccount, branchId);
       }
 
       await pause();
@@ -128,7 +139,6 @@ async function main() {
 
     case "4":
       await addAccount();
-      // Tidak perlu pause agar langsung refresh list akun kalau mau lihat
       break;
 
     case "5":
@@ -139,11 +149,7 @@ async function main() {
       break;
 
     case "6":
-      console.log(
-        chalk.yellow(
-          "Fitur Monitor akan menggunakan interval looping (Next Step)."
-        )
-      );
+      await startAutoMonitor();
       await pause();
       break;
 
