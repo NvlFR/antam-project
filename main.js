@@ -14,21 +14,44 @@ const { startAutoMonitor } = require("./src/autoMonitor");
 const { startSniperMode } = require("./src/sniper");
 const { startSniperAPI } = require("./src/sniperAPI");
 const { scrapeWakdaIDs } = require("./src/wakdaScraper");
-const { startMultiSniper } = require("./src/multiSniper"); // Pastikan file ini ada
+const { startMultiSniper } = require("./src/multiSniper");
+const { secretMap, getSiteName } = require("./src/config");
+
+// --- HELPER: TAMPILKAN DAFTAR CABANG (2 KOLOM) ---
+function showBranchList() {
+  console.log(chalk.yellow("DAFTAR CABANG TERSEDIA:"));
+  const siteIds = Object.keys(secretMap).sort(
+    (a, b) => parseInt(a) - parseInt(b)
+  ); // Urutkan angka
+
+  // Tampilkan 2 kolom biar hemat tempat
+  for (let i = 0; i < siteIds.length; i += 2) {
+    const id1 = siteIds[i];
+    const name1 = getSiteName(id1).replace("Butik Emas LM - ", "");
+    const str1 = `[${id1}] ${name1}`;
+
+    const id2 = siteIds[i + 1];
+    let str2 = "";
+    if (id2) {
+      const name2 = getSiteName(id2).replace("Butik Emas LM - ", "");
+      str2 = `[${id2}] ${name2}`;
+    }
+
+    // Print kolom rapi
+    console.log(chalk.cyan(`${str1.padEnd(35)} ${str2}`));
+  }
+  console.log(chalk.gray("──────────────────────────────────────────────────"));
+}
 
 async function main() {
   console.clear();
 
-  // Load config terbaru
   const config = loadSettings();
-
-  // Format status untuk Header
   const headlessStatus = config.headless ? chalk.green("ON") : chalk.red("OFF");
   const proxyStatus = config.useProxy
     ? chalk.green("AKTIF")
     : chalk.red("MATI");
 
-  // 1. Tampilkan Header
   drawHeader("BOT ANTAM - PLAYWRIGHT FULL AUTO");
   console.log(
     chalk.dim(
@@ -36,7 +59,6 @@ async function main() {
     )
   );
 
-  // 2. Render Menu Manual
   console.log(chalk.white("1. Login Semua Akun"));
   console.log(chalk.white("2. Cek Kuota & Restok"));
   console.log(chalk.white("3. SNIPER MODE (Single & Multi)"));
@@ -48,9 +70,8 @@ async function main() {
   console.log(chalk.white("T. Test Proxy"));
   console.log(chalk.gray("──────────────────────────────"));
   console.log(chalk.red("0. Keluar"));
-  console.log(""); // Spasi kosong
+  console.log("");
 
-  // 3. Input Prompt
   const answer = await inquirer.prompt([
     {
       type: "input",
@@ -60,7 +81,6 @@ async function main() {
     },
   ]);
 
-  // 4. Switch Case
   switch (answer.menu.trim()) {
     case "1":
       const accountsLogin = loadAccounts();
@@ -78,7 +98,6 @@ async function main() {
       break;
 
     case "3":
-      // --- LOGIC WAR MODE ---
       const accountsWar = loadAccounts();
       if (accountsWar.length === 0) {
         console.log(chalk.red("⚠️  Belum ada akun! Tambah dulu."));
@@ -86,7 +105,7 @@ async function main() {
         break;
       }
 
-      // 1. Pilih Strategi (Single vs Multi)
+      // 1. Pilih Strategi
       const { strategy } = await inquirer.prompt([
         {
           type: "list",
@@ -113,19 +132,28 @@ async function main() {
             name: "selectedAccountIndex",
             message: "Pilih Akun Sniper:",
             choices: accountsWar.map((acc, idx) => ({
-              name: acc.email,
+              name: `${acc.email} (${getSiteName(acc.branch).replace(
+                "Butik Emas LM - ",
+                ""
+              )})`,
               value: idx,
             })),
           },
         ]);
         const sniperAccount = accountsWar[selectedAccountIndex];
 
+        // TAMPILKAN LIST MANUAL
+        showBranchList();
+
+        // INPUT ANGKA MANUAL
         const { branchId } = await inquirer.prompt([
           {
-            type: "input",
+            type: "input", // UBAH JADI INPUT
             name: "branchId",
-            message: "Masukkan ID Cabang Target:",
-            default: sniperAccount.branch || "6",
+            message: "Masukkan ID Cabang Target (Lihat list di atas):",
+            default: sniperAccount.branch, // Default ke cabang akun
+            validate: (val) =>
+              secretMap[val] ? true : "ID Cabang tidak valid!",
           },
         ]);
 
@@ -135,13 +163,10 @@ async function main() {
             name: "mode",
             message: "Pilih Metode Teknis:",
             choices: [
+              { name: "API Hybrid (Disarankan: Cepat & Stabil)", value: "api" },
               {
-                name: "Browser Sniper (Visual, Lebih Aman)",
+                name: "Browser Sniper (Visual, Lebih Lambat)",
                 value: "browser",
-              },
-              {
-                name: "API Hybrid (Experimental, Super Cepat)",
-                value: "api",
               },
             ],
           },
@@ -160,7 +185,10 @@ async function main() {
             name: "selectedIndices",
             message: "Pilih Pasukan (Spasi untuk pilih):",
             choices: accountsWar.map((acc, idx) => ({
-              name: `${acc.email} (${acc.branch})`,
+              name: `${acc.email} [${getSiteName(acc.branch).replace(
+                "Butik Emas LM - ",
+                ""
+              )}]`,
               value: idx,
             })),
             validate: (a) => (a.length < 1 ? "Pilih minimal 1 akun" : true),
@@ -169,12 +197,16 @@ async function main() {
 
         const selectedAccounts = selectedIndices.map((idx) => accountsWar[idx]);
 
+        // TAMPILKAN LIST MANUAL
+        showBranchList();
+
         const { branchIdMulti } = await inquirer.prompt([
           {
             type: "input",
             name: "branchIdMulti",
             message: "Masukkan ID Cabang Target (Serangan Bersama):",
-            default: "6",
+            validate: (val) =>
+              secretMap[val] ? true : "ID Cabang tidak valid!",
           },
         ]);
 
@@ -196,6 +228,9 @@ async function main() {
       break;
 
     case "6":
+      // Update untuk Monitor Otomatis juga biar konsisten (List -> Input)
+      // Tapi logic-nya ada di dalam autoMonitor.js,
+      // Untuk sekarang biarkan dulu, atau kamu mau ubah juga?
       await startAutoMonitor();
       await pause();
       break;
