@@ -14,7 +14,7 @@ const { testProxy } = require("./src/proxyTester");
 const { startAutoMonitor } = require("./src/autoMonitor");
 const { startSniperMode } = require("./src/sniper");
 const { startSniperAPI } = require("./src/sniperAPI"); // Pastikan file ini ada
-
+const { scrapeWakdaIDs } = require("./src/wakdaScraper");
 async function main() {
   console.clear();
 
@@ -43,6 +43,7 @@ async function main() {
   console.log(chalk.white("5. Cek & Hapus Akun"));
   console.log(chalk.white("6. Monitor Otomatis"));
   console.log(chalk.white("7. Pengaturan Bot"));
+  console.log(chalk.magenta("8. Scrape Wakda ID (INTEL)"));
   console.log(chalk.white("T. Test Proxy"));
   console.log(chalk.gray("──────────────────────────────"));
   console.log(chalk.red("0. Keluar"));
@@ -155,6 +156,11 @@ async function main() {
 
     case "7": // PENGATURAN
       await manageSettings();
+      break;
+
+    case "8":
+      await scrapeWakdaIDs();
+      await pause();
       break;
 
     case "t": // TEST PROXY

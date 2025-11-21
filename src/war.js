@@ -12,11 +12,10 @@ async function checkQuotaAll() {
   console.clear();
   console.log(
     chalk.blue(
-      `\n[${new Date().toLocaleTimeString()}] 🔎 Pengecekan Kuota (Mode Stealth & Delay)...`
+      `\n[${new Date().toLocaleTimeString()}] 🔎 Pengecekan Kuota Detail (Sisa & Stok)...`
     )
   );
 
-  // 1. Cek Akun & Session
   const accounts = loadAccounts();
   if (accounts.length === 0) {
     console.log(chalk.red("❌ Tidak ada akun tersimpan! Tambah akun dulu."));
@@ -26,26 +25,26 @@ async function checkQuotaAll() {
   const botAccount = accounts[0];
   const sessionFile = `./session/${botAccount.email}.json`;
   if (!fs.existsSync(sessionFile)) {
-    console.log(
-      chalk.red(`❌ Sesi akun ${botAccount.email} tidak ditemukan. Login dulu!`)
-    );
+    console.log(chalk.red(`❌ Sesi akun ${botAccount.email} tidak ditemukan.`));
     return;
   }
 
   if (!fs.existsSync("./screenshots")) fs.mkdirSync("./screenshots");
 
+  // UPDATE TABEL: Menambahkan kolom Sisa & Sesi
   const table = new Table({
-    head: ["NO", "CABANG", "STATUS", "SLOT"],
-    colWidths: [5, 30, 20, 40],
+    head: ["NO", "CABANG", "SISA", "SESI WAKTU", "STATUS"],
+    colWidths: [5, 25, 10, 30, 20],
+    wordWrap: true,
   });
 
   const settings = loadSettings();
   const cookies = JSON.parse(fs.readFileSync(sessionFile, "utf-8"));
+
   console.log(
     chalk.dim(`   Akun: ${botAccount.email} | Headless: ${settings.headless}`)
   );
 
-  // 2. Launch Browser
   const browser = await chromium.launch({
     headless: settings.headless,
     args: ["--disable-blink-features=AutomationControlled"],
@@ -55,39 +54,41 @@ async function checkQuotaAll() {
     userAgent:
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     viewport: { width: 1280, height: 720 },
+    extraHTTPHeaders: {
+      Referer: "https://antrean.logammulia.com/users",
+      Origin: "https://antrean.logammulia.com",
+    },
   };
 
   if (settings.useProxy) contextOptions.proxy = proxyConfig;
-
   const context = await browser.newContext(contextOptions);
   await context.addCookies(cookies);
   const page = await context.newPage();
 
   try {
-    // 3. NAVIGASI MANUSIA
-    console.log(chalk.cyan("🔄 Masuk ke Dashboard..."));
+    // --- NAVIGASI AWAL ---
+    console.log(chalk.cyan("🔄 Pemanasan..."));
     await page.goto("https://antrean.logammulia.com/users", {
       timeout: 30000,
-      waitUntil: "domcontentloaded",
+      waitUntil: "commit",
     });
 
     if (page.url().includes("login")) {
-      console.log(chalk.red("❌ Sesi Expired! Silakan login ulang."));
+      console.log(chalk.red("❌ Sesi Expired!"));
       await browser.close();
       return;
     }
 
-    console.log(chalk.cyan("👆 Klik menu Antrean..."));
-    try {
-      await page.click('a[href*="/antrean"]');
-    } catch (e) {
-      await page.goto("https://antrean.logammulia.com/antrean");
-    }
+    // Force ke antrean
+    await page.goto("https://antrean.logammulia.com/antrean", {
+      waitUntil: "domcontentloaded",
+    });
 
+    // Cek Dropdown
     try {
       await page.waitForSelector("select#site", {
         state: "visible",
-        timeout: 20000,
+        timeout: 15000,
       });
     } catch (e) {
       console.log(chalk.red("❌ Gagal masuk halaman antrean."));
@@ -95,7 +96,7 @@ async function checkQuotaAll() {
       return;
     }
 
-    // 4. EXTRACT TOKEN LIVE
+    // Extract Token
     console.log(chalk.cyan("🔓 Extracting Token..."));
     const siteOptions = await page.$$eval("select#site option", (options) =>
       options
@@ -106,7 +107,7 @@ async function checkQuotaAll() {
     const liveSecretMap = {};
     for (const site of siteOptions) {
       await page.selectOption("select#site", site.value);
-      await page.waitForTimeout(100);
+      await page.waitForTimeout(150); // Percepat dikit
       const token = await page.inputValue("input#t");
       if (token) liveSecretMap[site.value] = token;
     }
@@ -114,7 +115,7 @@ async function checkQuotaAll() {
       chalk.green(`✅ ${Object.keys(liveSecretMap).length} Token didapat.`)
     );
 
-    // 5. LOOPING CHECK
+    // LOOPING CHECK
     const targetSiteIds = Object.keys(liveSecretMap);
     let no = 1;
 
@@ -128,82 +129,105 @@ async function checkQuotaAll() {
       try {
         await page.goto(url, { timeout: 20000, waitUntil: "domcontentloaded" });
 
-        // --- DETEKSI TURNSTILE / CLOUDFLARE ---
-        if (
-          (await page.title()) === "Just a moment..." ||
-          (await page.locator('iframe[src*="turnstile"]').count()) > 0
-        ) {
-          process.stdout.write(chalk.magenta("TURNSTILE! "));
-          await page.waitForTimeout(5000); // Tunggu 5 detik biar lolos sendiri
-          if ((await page.title()) === "Just a moment...") {
-            process.stdout.write(chalk.red("BLOCKED\n"));
-            table.push([no++, siteName, chalk.red("CF BLOCK"), "-"]);
-            continue;
-          }
-        }
-
-        // --- VALIDASI REDIRECT ---
         if (page.url().includes("/home") || page.url().includes("/users")) {
           process.stdout.write(chalk.red("REDIRECTED\n"));
-          table.push([no++, siteName, chalk.red("REDIRECT"), "-"]);
-          // Kalau kena redirect, kita harus 'refresh' status dengan balik ke /antrean dulu
-          await page.goto("https://antrean.logammulia.com/antrean");
+          table.push([no++, siteName, "-", "-", chalk.red("BLOCKED")]);
+          await page.goto("https://antrean.logammulia.com/antrean", {
+            waitUntil: "commit",
+          });
           continue;
         }
 
-        // --- SCRAPE DATA ---
-        const slotData = await page.evaluate(() => {
-          const select = document.querySelector("select#wakda");
+        // --- SCRAPING DETAIL (SISA, SESI, STOK) ---
+        const data = await page.evaluate(() => {
           const bodyText = document.body.innerText;
-          if (!select) {
-            if (bodyText.includes("Penuh") || bodyText.includes("Habis"))
-              return "FULL";
-            if (bodyText.includes("Tutup") || bodyText.includes("Jadwal"))
-              return "CLOSED";
-            return "UNKNOWN";
+
+          // 1. Cari Angka Sisa
+          // Format di web: "Sisa : 35" atau "Sisa : 0"
+          let sisaKuota = "Unknown";
+          // Cari elemen yang mengandung teks 'Sisa :'
+          const allDivs = Array.from(document.querySelectorAll("div"));
+          const sisaDiv = allDivs.find(
+            (el) => el.innerText.includes("Sisa :") && el.innerText.length < 50
+          );
+
+          if (sisaDiv) {
+            // Ambil angkanya saja
+            const match = sisaDiv.innerText.match(/Sisa\s*:\s*(\d+)/);
+            if (match) sisaKuota = match[1];
+          } else {
+            // Cek indikator merah
+            if (bodyText.includes("Kuota Tidak Tersedia")) sisaKuota = "0";
           }
-          return Array.from(select.options)
-            .filter((o) => o.value !== "")
-            .map((o) => ({ text: o.innerText.trim(), disabled: o.disabled }));
+
+          // 2. Cari Sesi Waktu
+          // Format: "Sesi waktu ambil antrean : Pukul 12:00 - 12:30 WIB"
+          let sesiWaktu = "-";
+          const sesiDiv = allDivs.find((el) =>
+            el.innerText.includes("Sesi waktu ambil antrean")
+          );
+          if (sesiDiv) {
+            const text = sesiDiv.innerText;
+            const match = text.match(/Pukul\s+([\d:]+\s*-\s*[\d:]+)/);
+            if (match) sesiWaktu = match[1]; // "12:00 - 12:30"
+          }
+
+          // 3. Cek Dropdown
+          const select = document.querySelector("select#wakda");
+          const hasDropdown =
+            select &&
+            Array.from(select.options).some(
+              (o) => !o.disabled && o.value !== ""
+            );
+
+          // 4. Cek Status Tutup/Penuh Text
+          let globalStatus = "OPEN";
+          if (bodyText.includes("TUTUP otomatis") && !hasDropdown)
+            globalStatus = "CLOSED";
+          if (bodyText.includes("Kuota Tidak Tersedia")) globalStatus = "FULL";
+
+          return {
+            sisa: sisaKuota,
+            sesi: sesiWaktu,
+            hasDropdown,
+            globalStatus,
+          };
         });
 
-        let statusDisplay = "",
-          slotDisplay = "";
-        if (slotData === "FULL") {
-          statusDisplay = chalk.red("PENUH");
-          slotDisplay = "-";
-        } else if (slotData === "CLOSED") {
-          statusDisplay = chalk.red("TUTUP");
-          slotDisplay = "-";
-        } else if (Array.isArray(slotData)) {
-          const available = slotData.filter((s) => !s.disabled);
-          if (available.length > 0) {
-            statusDisplay = chalk.greenBright("✅ ADA KUOTA");
-            slotDisplay = available.map((s) => s.text).join(", ");
-          } else {
-            statusDisplay = chalk.red("HABIS");
-            slotDisplay = "-";
-          }
+        // --- LOGIC PENENTUAN STATUS FINAL ---
+        let statusDisplay = "";
+        let sisaDisplay = data.sisa;
+
+        // Logika Prioritas:
+        // 1. Kalau Sisa = 0, maka PASTI HABIS (Meskipun dropdown nyangkut)
+        // 2. Kalau Sisa > 0 dan Dropdown Ada, maka ADA KUOTA
+
+        if (data.sisa === "0" || data.globalStatus === "FULL") {
+          statusDisplay = chalk.red("❌ HABIS");
+          sisaDisplay = chalk.red("0");
+        } else if (data.globalStatus === "CLOSED") {
+          statusDisplay = chalk.red("⛔ TUTUP");
+          sisaDisplay = "-";
+        } else if (parseInt(data.sisa) > 0 || data.hasDropdown) {
+          // Ada kuota!
+          statusDisplay = chalk.greenBright("✅ ADA KUOTA");
+          sisaDisplay = chalk.greenBright(data.sisa);
         } else {
           statusDisplay = chalk.yellow("UNKNOWN");
-          slotDisplay = "?";
         }
 
-        table.push([no++, siteName, statusDisplay, slotDisplay]);
+        table.push([no++, siteName, sisaDisplay, data.sesi, statusDisplay]);
         process.stdout.write(chalk.green("OK\n"));
       } catch (e) {
         process.stdout.write(chalk.red("Timeout\n"));
-        table.push([no++, siteName, chalk.red("TIMEOUT"), "-"]);
+        table.push([no++, siteName, "?", "?", chalk.red("TIMEOUT")]);
       }
 
-      // --- DELAY DINAMIS ---
-      // Random antara 2-4 detik
-      const pauseTime = Math.floor(Math.random() * 2000) + 2000;
-
-      // Istirahat panjang setiap 5 request biar gak dikira robot gila
+      // Delay
+      const pauseTime = Math.floor(Math.random() * 1000) + 1000;
       if (no % 5 === 0) {
-        process.stdout.write(chalk.cyan("   (Cooling down 10s...)\n"));
-        await delay(10000);
+        process.stdout.write(chalk.cyan("   (Jeda 5s...)\n"));
+        await delay(5000);
       } else {
         await delay(pauseTime);
       }

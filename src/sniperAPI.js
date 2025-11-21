@@ -8,21 +8,59 @@ const { ensureSessionValid } = require("./sessionGuard");
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// DATABASE WAKDA (Hasil Intelijen Kamu)
+const wakdaMap = {
+  // --- JAKARTA & SEKITARNYA ---
+  6: ["1", "2", "3", "4", "5"], // Gedung Antam (Range Aman)
+  3: ["11", "12"], // Graha Dipta
+  8: ["45", "32"], // Setiabudi One
+  19: ["44"], // Bekasi
+  16: ["49"], // Bintaro
+  17: ["43"], // Bogor
+  20: ["47"], // Djuanda
+  21: ["48"], // Puri Indah
+  23: ["46"], // Serpong
+
+  // --- LUAR KOTA ---
+  1: ["1", "2"], // Bandung
+  11: ["1", "2"], // Makassar
+  10: ["1", "2"], // Medan
+};
+
 async function startSniperAPI(account, targetSiteId) {
   console.clear();
-  console.log(chalk.bgRed.white.bold(" 🚀 SNIPER API: RESPONSE READER MODE "));
+  console.log(chalk.bgRed.white.bold(" 🚀 SNIPER API: HYBRID WARFARE "));
   console.log(
     chalk.dim(`Target: ${getSiteName(targetSiteId)} | Akun: ${account.email}`)
   );
 
+  // 1. Cek Sesi Awal
   await ensureSessionValid(account);
   const sessionFile = `./session/${account.email}.json`;
   if (!fs.existsSync(sessionFile))
-    return console.log(chalk.red("Session hilang!"));
+    return console.log(chalk.red("❌ Session hilang! Login dulu."));
 
   const settings = loadSettings();
   const cookies = JSON.parse(fs.readFileSync(sessionFile, "utf-8"));
 
+  // 2. Siapkan Peluru (Wakda ID)
+  let targetWakdaList = wakdaMap[targetSiteId];
+  if (!targetWakdaList) {
+    console.log(
+      chalk.yellow(
+        `⚠️ ID Wakda belum dipetakan. Menggunakan mode BRUTE FORCE (1-50).`
+      )
+    );
+    console.log(
+      chalk.dim(`   Tips: Gunakan Menu 8 untuk update database wakda.`)
+    );
+    targetWakdaList = Array.from({ length: 50 }, (_, i) => String(i + 1));
+  }
+  console.log(
+    chalk.cyan(`🎯 Peluru Wakda Siap: [${targetWakdaList.join(", ")}]`)
+  );
+
+  // 3. Launch Browser (Headless FALSE biar aman dari Cloudflare awal)
   const browser = await chromium.launch({
     headless: false,
     args: ["--disable-blink-features=AutomationControlled"],
@@ -49,40 +87,35 @@ async function startSniperAPI(account, targetSiteId) {
   let preSolvedCaptcha = null;
 
   try {
-    // --- STEP 1: INFILTRASI ---
-    console.log(chalk.cyan("🔄 Mengumpulkan Data Intel..."));
+    // --- STEP 1: INFILTRASI & PENGUMPULAN TOKEN ---
+    console.log(chalk.cyan("🔄 Masuk ke Dashboard..."));
     await page.goto("https://antrean.logammulia.com/antrean", {
       waitUntil: "domcontentloaded",
     });
 
+    // Cek Login di awal
+    if (page.url().includes("login")) {
+      console.log(chalk.red("⚠️ Terdeteksi Logout. Login ulang..."));
+      await performEmergencyLogin(page, account);
+    }
+
+    // Ambil Token URL
     try {
       await page.waitForSelector("select#site", { timeout: 15000 });
       await page.selectOption("select#site", targetSiteId);
       await page.waitForTimeout(500);
       tokenUrl = await page.inputValue("input#t");
     } catch (e) {
-      console.log(chalk.red("❌ Dropdown error."));
+      console.log(chalk.red("❌ Gagal ambil token URL. Cek IP/Koneksi."));
       await browser.close();
       return;
     }
 
     if (!tokenUrl) throw new Error("Token URL kosong.");
 
-    const currentCookies = await context.cookies();
-    const csrfCookie = currentCookies.find(
-      (c) => c.name === "csrf_cookie_name" || c.name === "csrf_test_name"
-    );
-    if (csrfCookie) {
-      csrfToken = csrfCookie.value;
-      console.log(
-        chalk.green(`✅ CSRF Token: ${csrfToken.substring(0, 10)}...`)
-      );
-    } else {
-      csrfToken = await page
-        .inputValue('input[name="csrf_test_name"]')
-        .catch(() => null);
-      if (!csrfToken) throw new Error("CSRF Token missing.");
-    }
+    // Ambil CSRF dari Cookie (Paling Stabil)
+    csrfToken = await getCsrfToken(page, context);
+    console.log(chalk.green(`✅ CSRF Awal: ${csrfToken.substring(0, 10)}...`));
 
     targetUrl = `https://antrean.logammulia.com/antrean?site=${targetSiteId}&t=${tokenUrl}`;
     console.log(chalk.yellow(`🚀 Standby di Halaman Target...`));
@@ -94,19 +127,27 @@ async function startSniperAPI(account, targetSiteId) {
 
     let targetTime = new Date();
     let jamString = "UNKNOWN";
+
     if (timeMatch) {
       jamString = timeMatch[1];
       const [h, m] = jamString.split(":");
       targetTime.setHours(parseInt(h), parseInt(m), 0, 0);
       console.log(chalk.greenBright(`📅 Target Lock: ${jamString} WIB`));
     } else {
-      console.log(chalk.red("⚠️ Jam manual: +1 menit."));
+      console.log(chalk.red("⚠️ Jam tidak terdeteksi. Set manual: +1 menit."));
       targetTime.setMinutes(targetTime.getMinutes() + 1);
-      jamString = `${targetTime.getHours()}:${targetTime.getMinutes()}`;
+      jamString = `${targetTime
+        .getHours()
+        .toString()
+        .padStart(2, "0")}:${targetTime
+        .getMinutes()
+        .toString()
+        .padStart(2, "0")}`;
     }
 
-    // --- STEP 3: WAITING ---
+    // --- STEP 3: WAITING (HEARTBEAT MODE) ---
     console.log(chalk.blue("\n⏳ COUNTDOWN TO API LAUNCH..."));
+    let lastHeartbeat = Date.now();
 
     while (true) {
       const now = new Date();
@@ -118,13 +159,29 @@ async function startSniperAPI(account, targetSiteId) {
         );
       }
 
-      if (diffSec > 120 && diffSec % 60 === 0) {
-        await page.reload({ waitUntil: "domcontentloaded" });
-        const c = await context.cookies();
-        const cc = c.find((x) => x.name === "csrf_cookie_name");
-        if (cc) csrfToken = cc.value;
+      // --- LOGIKA HEARTBEAT (JAGA LILIN) ---
+      // Refresh setiap 50 detik jika waktu masih lama (> 60 detik)
+      if (diffSec > 60 && Date.now() - lastHeartbeat > 50000) {
+        console.log(chalk.cyan("\n💓 Heartbeat: Refreshing Session..."));
+        try {
+          await page.reload({ waitUntil: "domcontentloaded" });
+
+          // DETEKSI KICK LOGOUT
+          if (page.url().includes("login")) {
+            console.log(chalk.bgRed(" ⚠️ SESI MATI! RE-LOGIN DARURAT! "));
+            await performEmergencyLogin(page, account);
+            await page.goto(targetUrl, { waitUntil: "domcontentloaded" });
+          }
+
+          // Update CSRF Token (PENTING!)
+          csrfToken = await getCsrfToken(page, context);
+        } catch (e) {
+          console.log(chalk.yellow("   Heartbeat timeout, skip."));
+        }
+        lastHeartbeat = Date.now();
       }
 
+      // Pre-Solve Captcha (45 detik sebelum perang)
       if (diffSec <= 45 && diffSec > 0 && !preSolvedCaptcha) {
         console.log(chalk.yellow("\n🧩 Pre-Solving Captcha..."));
         solveRecaptchaV2(page.url(), siteKeys.antrean).then((t) => {
@@ -138,6 +195,7 @@ async function startSniperAPI(account, targetSiteId) {
         console.log(chalk.magenta.bold("\n\n🚀 LAUNCHING API MISSILES!!!"));
 
         if (!preSolvedCaptcha) {
+          console.log("⚠️ Darurat: Solving Captcha on-the-fly...");
           preSolvedCaptcha = await solveRecaptchaV2(
             page.url(),
             siteKeys.antrean
@@ -145,11 +203,12 @@ async function startSniperAPI(account, targetSiteId) {
         }
 
         const requests = [];
-        const slotGuessIds = ["1", "2", "3", "4", "5"];
 
-        for (const wakdaId of slotGuessIds) {
+        // TEMBAK SEMUA ID WAKDA YANG ADA DI LIST
+        for (const wakdaId of targetWakdaList) {
           const formattedJam =
             jamString.length === 5 ? `${jamString}:00` : jamString;
+
           const formData = {
             csrf_test_name: csrfToken,
             wakda: wakdaId,
@@ -160,6 +219,7 @@ async function startSniperAPI(account, targetSiteId) {
             "g-recaptcha-response": preSolvedCaptcha,
           };
 
+          // Push Request Promise
           requests.push(
             context.request
               .post("https://antrean.logammulia.com/antrean-ambil", {
@@ -167,44 +227,30 @@ async function startSniperAPI(account, targetSiteId) {
                 headers: { Referer: targetUrl },
               })
               .then(async (response) => {
-                const status = response.status();
-                // Baca respon text/json dari server
-                const rawBody = await response.text();
+                const text = await response.text();
+                // Cek status sukses
+                if (
+                  response.status() === 200 &&
+                  !text.includes("penuh") &&
+                  !text.includes("Gagal") &&
+                  !text.includes("Habis")
+                ) {
+                  console.log(
+                    chalk.bgGreen.black(` ✅ HIT WAKDA ${wakdaId}: SUCCESS! `)
+                  );
 
-                // --- ANALISIS RESPON (MIRIP LOG BOT TEMANMU) ---
-                if (status === 200) {
-                  // Kalau sukses, server biasanya kirim JSON atau HTML Popup
-                  // Kita cari kata kunci positif
-                  if (
-                    !rawBody.includes("penuh") &&
-                    !rawBody.includes("Gagal")
-                  ) {
-                    console.log(
-                      chalk.bgGreen.black(
-                        `\n ✅ HIT SLOT ${wakdaId}: SUCCESS! `
-                      )
-                    );
-
-                    // Coba parse JSON kalau bisa
-                    try {
-                      const json = JSON.parse(rawBody);
-                      console.log(chalk.green("📩 SERVER RESPONSE:"), json);
-                      if (json.nomor_antrean) {
-                        console.log(
-                          chalk.bgYellow.black(
-                            ` 🎫 NOMOR TIKET: ${json.nomor_antrean} `
-                          )
-                        );
-                      }
-                    } catch (e) {
-                      // Kalau bukan JSON (HTML), print sebagian
+                  // Coba parse JSON (biasanya dapat nomor tiket)
+                  try {
+                    const json = JSON.parse(text);
+                    if (json.nomor_antrean)
                       console.log(
-                        chalk.green("📩 RAW RESPONSE:"),
-                        rawBody.substring(0, 150) + "..."
+                        chalk.bgYellow.black(
+                          ` 🎫 TIKET: ${json.nomor_antrean} `
+                        )
                       );
-                    }
-                    return true;
-                  }
+                  } catch (e) {}
+
+                  return true;
                 }
                 return false;
               })
@@ -212,46 +258,79 @@ async function startSniperAPI(account, targetSiteId) {
           );
         }
 
-        console.log(chalk.yellow("🔥 Sending 5 Concurrent Requests..."));
+        console.log(
+          chalk.yellow(`🔥 Sending ${requests.length} Concurrent Requests...`)
+        );
+
+        // Tunggu semua request selesai
         const results = await Promise.all(requests);
 
-        // --- SETELAH MENEMBAK ---
-        // Kita TIDAK PERLU ke /riwayat kalau tidak ada.
-        // Kita refresh halaman saat ini saja, atau cek Dashboard.
-
-        console.log(
-          chalk.cyan("\n🏁 Mengecek status di Dashboard (/users)...")
-        );
-        await page.goto("https://antrean.logammulia.com/users", {
-          waitUntil: "domcontentloaded",
-        });
-
-        // Screenshot Dashboard (Biasanya tiket aktif muncul di sini)
-        await page.screenshot({
-          path: `./screenshots/DASHBOARD_RESULT_${Date.now()}.png`,
-        });
-
-        if (results.includes(true)) {
+        // --- VALIDASI FINAL ---
+        console.log(chalk.cyan("\n🏁 Cek Halaman Riwayat..."));
+        try {
+          await page.goto("https://antrean.logammulia.com/riwayat", {
+            waitUntil: "domcontentloaded",
+            timeout: 30000,
+          });
+          await page.screenshot({
+            path: `./screenshots/RESULT_API_${Date.now()}.png`,
+          });
+        } catch (e) {
           console.log(
-            chalk.green.bold("🎉🎉 INDIKASI SUKSES DARI RESPON SERVER! 🎉🎉")
-          );
-        } else {
-          console.log(
-            chalk.yellow(
-              "⚠️ Respon server tidak meyakinkan. Cek manual akun Anda."
-            )
+            "Gagal load riwayat (mungkin server down), cek screenshot manual nanti."
           );
         }
 
-        break;
+        if (results.includes(true)) {
+          console.log(
+            chalk.green.bold("🎉🎉 INDIKASI SUKSES! Cek Akun Anda! 🎉🎉")
+          );
+        } else {
+          console.log(chalk.red("❌ Gagal/Penuh."));
+        }
+
+        break; // Selesai perang
       }
       await delay(1000);
     }
   } catch (error) {
     console.error(chalk.red(`CRASH: ${error.message}`));
-    if (page) await page.screenshot({ path: `./screenshots/crash_api.png` });
   } finally {
     console.log("Selesai.");
+    // Biarkan browser terbuka biar bisa cek manual
+  }
+}
+
+// Helper: Ambil CSRF dari Cookie (Prioritas) atau HTML
+async function getCsrfToken(page, context) {
+  const currentCookies = await context.cookies();
+  const csrfCookie = currentCookies.find(
+    (c) => c.name === "csrf_cookie_name" || c.name === "csrf_test_name"
+  );
+
+  if (csrfCookie) return csrfCookie.value;
+
+  // Fallback ke HTML
+  return await page.inputValue('input[name="csrf_test_name"]').catch(() => "");
+}
+
+// Helper: Login Darurat tanpa matikan bot
+async function performEmergencyLogin(page, account) {
+  try {
+    await page.waitForSelector("#username", { timeout: 5000 });
+    await page.fill("#username", account.email);
+    await page.fill("#password", account.password);
+
+    const t = await solveRecaptchaV2(page.url(), siteKeys.login);
+    await page.evaluate((tk) => {
+      document.getElementById("g-recaptcha-response").innerHTML = tk;
+    }, t);
+
+    await page.click('button[type="submit"]');
+    await page.waitForNavigation();
+    console.log(chalk.green("✅ Re-Login Berhasil."));
+  } catch (e) {
+    console.log(chalk.red("❌ Gagal Re-Login Darurat: " + e.message));
   }
 }
 

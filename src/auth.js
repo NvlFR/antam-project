@@ -5,7 +5,6 @@ const { proxyConfig, siteKeys } = require("./config");
 const { solveRecaptchaV2 } = require("./solver");
 const { loadSettings } = require("./settings");
 
-// Pastikan folder session & screenshots ada
 if (!fs.existsSync("./session")) fs.mkdirSync("./session");
 if (!fs.existsSync("./screenshots")) fs.mkdirSync("./screenshots");
 
@@ -25,18 +24,32 @@ async function loginSingleAccount(account, isRefresh = false) {
     );
   }
 
+  // ARGS TAMBAHAN AGAR HEADLESS TIDAK TERDETEKSI
+  const stealthArgs = [
+    "--disable-blink-features=AutomationControlled",
+    "--disable-features=IsolateOrigins,site-per-process",
+    "--no-sandbox",
+    "--disable-setuid-sandbox",
+    "--disable-dev-shm-usage",
+    "--disable-accelerated-2d-canvas",
+    "--no-first-run",
+    "--no-zygote",
+    "--disable-gpu", // Kadang gpu bikin crash di headless
+    "--hide-scrollbars",
+    "--mute-audio",
+  ];
+
   const browser = await chromium.launch({
     headless: settings.headless,
-    args: [
-      "--disable-blink-features=AutomationControlled",
-      "--disable-features=IsolateOrigins,site-per-process",
-    ],
+    args: stealthArgs,
   });
 
   const contextOptions = {
     userAgent:
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    viewport: { width: 1280, height: 720 },
+    viewport: { width: 1366, height: 768 }, // Viewport PC standar
+    locale: "id-ID",
+    timezoneId: "Asia/Jakarta",
   };
 
   if (settings.useProxy) {
@@ -49,6 +62,13 @@ async function loginSingleAccount(account, isRefresh = false) {
   try {
     page = await context.newPage();
 
+    // Mencegah deteksi webdriver
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, "webdriver", {
+        get: () => undefined,
+      });
+    });
+
     if (!isRefresh)
       console.log(chalk.cyan(`[${account.email}] Mengakses Halaman Login...`));
 
@@ -57,91 +77,31 @@ async function loginSingleAccount(account, isRefresh = false) {
       waitUntil: "domcontentloaded",
     });
 
-    // --- [ZONE 1: BYPASS "BOT VERIFICATION" / CLOUDFLARE] ---
-    // Cek apakah kita tertahan di halaman verifikasi
+    // --- ZONE 1: BYPASS CHECK ---
     const title = await page.title();
     const isBlocked =
       title.includes("Just a moment") || title.includes("Bot Verification");
 
     if (isBlocked) {
-      console.log(chalk.yellow(`⚠️ Terhadang Halaman Verifikasi (IP Check).`));
-
-      // 1. Cek apakah ada ReCaptcha (Kotak Centang)
+      if (!isRefresh)
+        console.log(chalk.yellow(`⚠️ Cloudflare Check... Menunggu...`));
       try {
-        // Cari iframe captcha
-        const frameElement = await page.waitForSelector(
-          'iframe[src*="recaptcha"]',
-          { timeout: 10000 }
-        );
-
-        if (frameElement) {
-          console.log(
-            chalk.blue("🤖 Mencoba klik checkbox 'I am not a robot'...")
-          );
-          const frame = await frameElement.contentFrame();
-          const checkbox = await frame.$(".recaptcha-checkbox-border");
-
-          if (checkbox) {
-            await checkbox.click();
-            console.log(chalk.green("✅ Checkbox diklik. Menunggu hasil..."));
-            await page.waitForTimeout(2000);
-          }
-
-          // Cek apakah lolos atau minta puzzle
-          const isStillBlocked = await page.title();
-          if (isStillBlocked.includes("Bot Verification")) {
-            console.log(
-              chalk.magenta("🧩 Muncul Puzzle Gambar! Mencoba solver...")
-            );
-
-            // Ambil SiteKey dari URL iframe
-            const frameUrl = await frameElement.getAttribute("src");
-            const urlParams = new URLSearchParams(frameUrl.split("?")[1]);
-            const siteKey = urlParams.get("k");
-
-            if (siteKey) {
-              const token = await solveRecaptchaV2(page.url(), siteKey);
-              // Inject Token
-              await page.evaluate((t) => {
-                document.getElementById("g-recaptcha-response").innerHTML = t;
-                // Coba submit form otomatis (biasanya ada form tersembunyi)
-                document.querySelector("form")?.submit();
-              }, token);
-              console.log(chalk.green("✅ Token Injected."));
-            } else {
-              console.log(
-                chalk.red("❌ Gagal ambil SiteKey. Mohon selesaikan manual.")
-              );
-            }
-          }
-        }
-      } catch (e) {
-        console.log(
-          chalk.dim(
-            "   (Tidak ada checkbox klik, menunggu cloudflare putar otomatis...)"
-          )
-        );
-      }
-
-      // Tunggu sampai elemen Login Asli muncul
-      console.log(
-        chalk.yellow("⏳ Menunggu masuk halaman login asli... (Max 30s)")
-      );
-      try {
+        // Tunggu input username muncul (max 30 detik)
         await page.waitForSelector("#username", { timeout: 30000 });
-        console.log(chalk.green("✅ BERHASIL MASUK LOGIN!"));
+        if (!isRefresh) console.log(chalk.green("✅ Lolos Cloudflare!"));
       } catch (e) {
+        await page.screenshot({
+          path: `./screenshots/stuck_cloudflare_${account.email}.png`,
+        });
         throw new Error(
-          "Gagal menembus verifikasi. Coba ganti IP Proxy atau login manual."
+          "Gagal menembus Cloudflare (IP Kotor/Headless Terdeteksi)."
         );
       }
     }
-    // ---------------------------------------------------------
 
-    // 2. Isi Form Login (Sekarang sudah pasti di halaman login)
+    // 2. Isi Form
     if (!isRefresh)
       console.log(chalk.cyan(`[${account.email}] Mengisi Form...`));
-
     await page.fill("#username", account.email);
     await page.fill("#password", account.password);
 
@@ -149,9 +109,9 @@ async function loginSingleAccount(account, isRefresh = false) {
       await page.check("#customCheckb1");
     }
 
-    // 3. Handle Captcha Login (ReCaptcha v2 Form)
+    // 3. Handle Captcha
     if (!isRefresh)
-      console.log(chalk.yellow(`[${account.email}] Solving Captcha Login...`));
+      console.log(chalk.yellow(`[${account.email}] Solving Captcha...`));
     const tokenLogin = await solveRecaptchaV2(page.url(), siteKeys.login);
 
     await page.evaluate((token) => {
@@ -182,10 +142,34 @@ async function loginSingleAccount(account, isRefresh = false) {
       if (!isRefresh)
         console.log(chalk.green(`[${account.email}] ✅ LOGIN SUKSES!`));
     } else {
-      const errorMsg = await page
-        .textContent(".alert")
-        .catch(() => "Unknown Error");
-      throw new Error(`Login Gagal: ${errorMsg.trim()}`);
+      // Cek error spesifik
+      const errorAlert = await page
+        .locator(".alert")
+        .textContent()
+        .catch(() => "");
+
+      // Cek apakah mental ke home (tandanya login berhasil tapi redirect aneh)
+      if (page.url().includes("/home")) {
+        // Kadang antam redirect ke home dulu baru users
+        // Coba goto users manual
+        await page.goto("https://antrean.logammulia.com/users");
+        if (page.url().includes("/users")) {
+          // Sukses telat
+          const cookies = await context.cookies();
+          fs.writeFileSync(sessionFile, JSON.stringify(cookies, null, 2));
+          if (!isRefresh)
+            console.log(
+              chalk.green(`[${account.email}] ✅ LOGIN SUKSES (via Redirect)!`)
+            );
+          return;
+        }
+      }
+
+      throw new Error(
+        `Login Gagal. URL: ${page.url()} | Pesan: ${
+          errorAlert.trim() || "Unknown Error"
+        }`
+      );
     }
   } catch (error) {
     console.log(chalk.red(`[${account.email}] ❌ Gagal: ${error.message}`));
