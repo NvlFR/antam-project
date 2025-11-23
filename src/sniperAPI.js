@@ -5,11 +5,14 @@ const { proxyConfig, getSiteName, siteKeys } = require("./config");
 const { loadSettings } = require("./settings");
 const { solveRecaptchaV2 } = require("./solver");
 const { ensureSessionValid } = require("./sessionGuard");
+const { sendTelegramMsg } = require("./telegram");
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const DB_WAKDA_PATH = "./database/wakda.json";
 
-// DATABASE WAKDA
-const wakdaMap = {
+// DATABASE CADANGAN (FALLBACK ONLY)
+// Script hanya akan pakai ini jika di wakda.json KOSONG.
+const wakdaMapFallback = {
   6: ["1", "2", "3", "4", "5"],
   3: ["11", "12"],
   8: ["45", "32"],
@@ -19,6 +22,8 @@ const wakdaMap = {
   20: ["47"],
   21: ["48"],
   23: ["46"],
+  5: ["50"],
+  24: ["51"],
   1: ["1", "2"],
   11: ["1", "2"],
   10: ["1", "2"],
@@ -26,7 +31,7 @@ const wakdaMap = {
 
 async function startSniperAPI(account, targetSiteId) {
   console.clear();
-  console.log(chalk.bgRed.white.bold(" 🚀 SNIPER API: BARCODE CHECK MODE "));
+  console.log(chalk.bgRed.white.bold(" 🚀 SNIPER API: SMART PRIORITY MODE "));
   console.log(
     chalk.dim(`Target: ${getSiteName(targetSiteId)} | Akun: ${account.email}`)
   );
@@ -39,21 +44,54 @@ async function startSniperAPI(account, targetSiteId) {
   const settings = loadSettings();
   const cookies = JSON.parse(fs.readFileSync(sessionFile, "utf-8"));
 
-  // Tentukan Target Wakda
-  let targetWakdaList = wakdaMap[targetSiteId];
+  // --- LOGIC PENENTUAN PELURU (PRIORITAS) ---
+  let targetWakdaList = null;
+
+  // 1. PRIORITAS UTAMA: Cek Database JSON (Hasil Scrape Menu 8)
+  try {
+    if (fs.existsSync(DB_WAKDA_PATH)) {
+      const dbData = JSON.parse(fs.readFileSync(DB_WAKDA_PATH, "utf-8"));
+      if (dbData[targetSiteId] && dbData[targetSiteId].length > 0) {
+        targetWakdaList = dbData[targetSiteId];
+        console.log(
+          chalk.green(
+            `✅ Menggunakan ID Wakda Terbaru dari Database (Updated).`
+          )
+        );
+      }
+    }
+  } catch (e) {
+    console.log(
+      chalk.yellow("⚠️ Gagal baca database wakda, mencoba fallback...")
+    );
+  }
+
+  // 2. PRIORITAS KEDUA: Cek Hardcode (Backup)
+  if (!targetWakdaList) {
+    targetWakdaList = wakdaMapFallback[targetSiteId];
+    if (targetWakdaList) {
+      console.log(
+        chalk.yellow(
+          `⚠️ Data di DB kosong. Menggunakan ID Wakda Hardcoded (Backup).`
+        )
+      );
+    }
+  }
+
+  // 3. PRIORITAS TERAKHIR: Brute Force
   if (!targetWakdaList) {
     console.log(
-      chalk.yellow(
-        `⚠️ ID Wakda belum dipetakan. Menggunakan mode BRUTE FORCE (1-50).`
+      chalk.red(
+        `⚠️ ID Wakda tidak ditemukan dimanapun. Mode BRUTE FORCE (1-50).`
       )
     );
     targetWakdaList = Array.from({ length: 50 }, (_, i) => String(i + 1));
   }
-  console.log(
-    chalk.cyan(`🎯 Peluru Wakda Siap: [${targetWakdaList.join(", ")}]`)
-  );
 
-  // Browser VISIBLE (Headless: False) agar bisa screenshot barcode
+  console.log(chalk.cyan(`🎯 Target IDs: [${targetWakdaList.join(", ")}]`));
+  // ------------------------------------------
+
+  // Browser VISIBLE (Headless: False)
   const browser = await chromium.launch({
     headless: false,
     args: ["--disable-blink-features=AutomationControlled"],
@@ -174,7 +212,7 @@ async function startSniperAPI(account, targetSiteId) {
         });
       }
 
-      // --- THE KILL SHOT (Detik 0) ---
+      // --- THE KILL SHOT ---
       if (diffSec <= 0) {
         console.log(chalk.magenta.bold("\n\n🚀 LAUNCHING API MISSILES!!!"));
 
@@ -221,6 +259,10 @@ async function startSniperAPI(account, targetSiteId) {
                       ` ✅ HIT WAKDA ${wakdaId}: SUCCESS (API)! `
                     )
                   );
+                  // Kirim Notif
+                  sendTelegramMsg(
+                    `🎫 <b>JACKPOT! TIKET DITEMUKAN!</b>\nAkun: ${account.email}\nWakda: ${wakdaId}`
+                  );
                   return true;
                 }
                 return false;
@@ -234,19 +276,13 @@ async function startSniperAPI(account, targetSiteId) {
         );
         const results = await Promise.all(requests);
 
-        // --- UPDATE VALIDASI BARU (ALA TEMANMU) ---
-        console.log(
-          chalk.cyan("\n🏁 Validasi: Refresh Halaman untuk Cek Barcode...")
-        );
-
-        // Cukup Refresh halaman butik (targetUrl)
-        // Gunakan wait networkidle agar gambar barcode sempat loading
+        // --- VALIDASI BARCODE ---
+        console.log(chalk.cyan("\n🏁 Validasi: Refresh Halaman..."));
         await page.goto(targetUrl, {
           waitUntil: "networkidle",
           timeout: 30000,
         });
 
-        // Cek Indikator Sukses Visual
         const isFormGone = await page.evaluate(
           () => !document.querySelector("select#wakda")
         );
@@ -256,10 +292,8 @@ async function startSniperAPI(account, targetSiteId) {
             document.body.innerText.includes("Barcode")
         );
 
-        // Screenshot Bukti
-        await page.screenshot({
-          path: `./screenshots/BUKTI_TIKET_${Date.now()}.png`,
-        });
+        const ssPath = `./screenshots/BUKTI_TIKET_${Date.now()}.png`;
+        await page.screenshot({ path: ssPath });
 
         if (results.includes(true) || isFormGone || isBarcodeVisible) {
           console.log(
@@ -267,8 +301,9 @@ async function startSniperAPI(account, targetSiteId) {
               " 🎉🎉 JACKPOT! TIKET MUNCUL DI LAYAR! 🎉🎉 "
             )
           );
-          console.log(
-            chalk.green("Cek folder screenshots untuk bukti Barcode!")
+          console.log(chalk.green("Cek folder screenshots!"));
+          sendTelegramMsg(
+            `🎉 <b>VALIDASI SUKSES!</b>\nTiket Barcode sudah muncul di layar.`
           );
         } else {
           console.log(
@@ -276,7 +311,7 @@ async function startSniperAPI(account, targetSiteId) {
           );
         }
 
-        break; // Selesai perang
+        break;
       }
       await delay(1000);
     }
@@ -284,11 +319,9 @@ async function startSniperAPI(account, targetSiteId) {
     console.error(chalk.red(`CRASH: ${error.message}`));
   } finally {
     console.log("Selesai.");
-    // Biarkan browser terbuka agar kamu bisa melihat barcodenya langsung
   }
 }
 
-// Helper: Ambil CSRF
 async function getCsrfToken(page, context) {
   const currentCookies = await context.cookies();
   const csrfCookie = currentCookies.find(
@@ -298,18 +331,15 @@ async function getCsrfToken(page, context) {
   return await page.inputValue('input[name="csrf_test_name"]').catch(() => "");
 }
 
-// Helper: Login Darurat
 async function performEmergencyLogin(page, account) {
   try {
     await page.waitForSelector("#username", { timeout: 5000 });
     await page.fill("#username", account.email);
     await page.fill("#password", account.password);
-
     const t = await solveRecaptchaV2(page.url(), siteKeys.login);
     await page.evaluate((tk) => {
       document.getElementById("g-recaptcha-response").innerHTML = tk;
     }, t);
-
     await page.click('button[type="submit"]');
     await page.waitForNavigation();
     console.log(chalk.green("✅ Re-Login Berhasil."));

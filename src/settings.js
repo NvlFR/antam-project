@@ -15,6 +15,8 @@ function loadSettings() {
       headless: true,
       useProxy: true,
     };
+    // Pastikan folder database ada
+    if (!fs.existsSync("./database")) fs.mkdirSync("./database");
     fs.writeFileSync(SETTINGS_PATH, JSON.stringify(defaultSettings, null, 2));
   }
   return JSON.parse(fs.readFileSync(SETTINGS_PATH));
@@ -27,6 +29,18 @@ function saveSettings(data) {
 
 // 3. Menu Interaktif Ubah Setting
 async function manageSettings() {
+  // Kita import di dalam fungsi untuk menghindari "Circular Dependency"
+  // (Karena telegram.js juga memanggil loadSettings dari file ini)
+  let sendTelegramMsg;
+  try {
+    const telegramModule = require("./telegram");
+    sendTelegramMsg = telegramModule.sendTelegramMsg;
+  } catch (e) {
+    // Fallback jika telegram.js belum dibuat
+    sendTelegramMsg = async () =>
+      console.log(chalk.red("Modul telegram.js belum ada!"));
+  }
+
   while (true) {
     const config = loadSettings();
     console.clear();
@@ -61,6 +75,7 @@ async function manageSettings() {
       }`
     );
     console.log(chalk.gray("────────────────────────"));
+    console.log(chalk.magenta("6. 🔔 TEST KIRIM NOTIFIKASI KE TELEGRAM")); // Menu Baru
     console.log("0. Kembali");
 
     const answer = await inquirer.prompt([
@@ -68,8 +83,11 @@ async function manageSettings() {
         type: "input",
         name: "choice",
         message: "Pilih nomor yang mau diedit:",
+        // Update validasi jadi 0-6
         validate: (val) =>
-          ["0", "1", "2", "3", "4", "5"].includes(val) ? true : "Pilih 0-5",
+          ["0", "1", "2", "3", "4", "5", "6"].includes(val)
+            ? true
+            : "Pilih 0-6",
       },
     ]);
 
@@ -80,12 +98,12 @@ async function manageSettings() {
       const input = await inquirer.prompt([
         { type: "input", name: "val", message: "Masukkan Token Bot Telegram:" },
       ]);
-      config.telegramToken = input.val;
+      config.telegramToken = input.val.trim();
     } else if (answer.choice === "2") {
       const input = await inquirer.prompt([
-        { type: "input", name: "val", message: "Masukkan Chat ID:" },
+        { type: "input", name: "val", message: "Masukkan Chat ID (Angka):" },
       ]);
-      config.telegramChatId = input.val;
+      config.telegramChatId = input.val.trim();
     } else if (answer.choice === "3") {
       const input = await inquirer.prompt([
         {
@@ -97,19 +115,24 @@ async function manageSettings() {
       ]);
       config.checkInterval = input.val;
     } else if (answer.choice === "4") {
-      // Toggle Headless
       config.headless = !config.headless;
       console.log(
         chalk.yellow(`Headless mode diubah menjadi: ${config.headless}`)
       );
     } else if (answer.choice === "5") {
-      // Toggle Proxy
       config.useProxy = !config.useProxy;
       console.log(chalk.yellow(`Proxy diubah menjadi: ${config.useProxy}`));
+    } else if (answer.choice === "6") {
+      // FITUR TEST NOTIFIKASI
+      console.log(chalk.yellow("Mengirim pesan tes ke Telegram..."));
+      await sendTelegramMsg(
+        "🔔 <b>TES NOTIFIKASI ANTAM</b>\n\nHalo Bos! Bot berhasil terhubung ke Telegram kamu.\nSiap memantau target! 🚀"
+      );
+      await new Promise((r) => setTimeout(r, 2500)); // Delay biar sempat baca log
     }
 
     saveSettings(config);
-    await new Promise((r) => setTimeout(r, 500)); // Delay dikit biar kerasa update
+    await new Promise((r) => setTimeout(r, 500));
   }
 }
 
