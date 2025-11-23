@@ -1,7 +1,7 @@
 const fs = require("fs");
 const inquirer = require("inquirer");
 const chalk = require("chalk");
-const { secretMap, getSiteName } = require("./config");
+const { secretMap, getSiteName } = require("../../config/config");
 
 const DB_PATH = "./database/accounts.json";
 

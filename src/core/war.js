@@ -2,9 +2,9 @@ const { chromium } = require("playwright");
 const chalk = require("chalk");
 const Table = require("cli-table3");
 const fs = require("fs");
-const { proxyConfig, getSiteName } = require("./config");
-const { loadSettings } = require("./settings");
-const { loadAccounts } = require("./accountManager");
+const { proxyConfig, getSiteName } = require("../../config/config");
+const { loadSettings } = require("../data/settings");
+const { loadAccounts } = require("../data/accountManager");
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 

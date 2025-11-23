@@ -2,9 +2,9 @@ const { chromium } = require("playwright");
 const chalk = require("chalk");
 const fs = require("fs");
 const Table = require("cli-table3"); // IMPORT LIBRARY TABEL
-const { proxyConfig, getSiteName } = require("./config");
-const { loadSettings } = require("./settings");
-const { loadAccounts } = require("./accountManager");
+const { proxyConfig, getSiteName } = require("../../config/config");
+const { loadSettings } = require("../data/settings");
+const { loadAccounts } = require("../data/accountManager");
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const DB_WAKDA_PATH = "./database/wakda.json";

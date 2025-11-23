@@ -1,6 +1,6 @@
 const axios = require("axios");
 const chalk = require("chalk");
-const { loadSettings } = require("./settings");
+const { loadSettings } = require("../data/settings");
 
 async function sendTelegramMsg(message) {
   const settings = loadSettings();

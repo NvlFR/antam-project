@@ -1,6 +1,6 @@
 const { chromium } = require("playwright");
 const chalk = require("chalk");
-const { proxyConfig } = require("./config");
+const { proxyConfig } = require("../../config/config");
 
 async function testProxy() {
   console.clear();

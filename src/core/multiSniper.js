@@ -1,10 +1,10 @@
 const { chromium } = require("playwright");
 const chalk = require("chalk");
 const fs = require("fs");
-const { proxyConfig, getSiteName, siteKeys } = require("./config");
-const { loadSettings } = require("./settings");
-const { solveRecaptchaV2 } = require("./solver");
-const { sendTelegramMsg } = require("./telegram"); // Tambah Notifikasi
+const { proxyConfig, getSiteName, siteKeys } = require("../../config/config");
+const { loadSettings } = require("../data/settings");
+const { solveRecaptchaV2 } = require("../utils/solver");
+const { sendTelegramMsg } = require("../utils/telegram"); 
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const DB_WAKDA_PATH = "./database/wakda.json";

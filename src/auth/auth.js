@@ -1,9 +1,9 @@
 const { chromium } = require("playwright");
 const fs = require("fs");
 const chalk = require("chalk");
-const { proxyConfig, siteKeys } = require("./config");
-const { solveRecaptchaV2 } = require("./solver");
-const { loadSettings } = require("./settings");
+const { proxyConfig, siteKeys } = require("../../config/config");
+const { solveRecaptchaV2 } = require("../utils/solver");
+const { loadSettings } = require("../data/settings");
 
 if (!fs.existsSync("./session")) fs.mkdirSync("./session");
 if (!fs.existsSync("./screenshots")) fs.mkdirSync("./screenshots");
