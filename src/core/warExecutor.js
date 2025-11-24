@@ -1,10 +1,10 @@
 const { chromium } = require("playwright");
 const chalk = require("chalk");
 const fs = require("fs");
-const { proxyConfig, secretMap, getSiteName, siteKeys } = require("./config");
-const { solveRecaptchaV2 } = require("./solver");
-const { loadSettings } = require("./settings");
-const { ensureSessionValid } = require("./sessionGuard");
+const { proxyConfig, secretMap, getSiteName, siteKeys } = require("../../config/config");
+const { solveRecaptchaV2 } = require("../utils/solver");
+const { loadSettings } = require("../data/settings");
+const { ensureSessionValid } = require("../auth/sessionGuard");
 
 async function executeWarSingle(account, targetSiteId) {
   console.log(chalk.blue(`\n⚔️  MEMULAI PERANG: ${chalk.bold(account.email)}`));

@@ -1,21 +1,21 @@
 const inquirer = require("inquirer");
 const chalk = require("chalk");
-const { drawHeader } = require("./src/ui");
+const { drawHeader } = require("./src/utils/ui");
 const {
   addAccount,
   listAccounts,
   loadAccounts,
-} = require("./src/accountManager");
-const { loginAllAccounts } = require("./src/auth");
-const { checkQuotaAll } = require("./src/war");
-const { manageSettings, loadSettings } = require("./src/settings");
-const { testProxy } = require("./src/proxyTester");
-const { startAutoMonitor } = require("./src/autoMonitor");
-const { startSniperMode } = require("./src/sniper");
-const { startSniperAPI } = require("./src/sniperAPI");
-const { scrapeWakdaIDs } = require("./src/wakdaScraper");
-const { startMultiSniper } = require("./src/multiSniper");
-const { secretMap, getSiteName } = require("./src/config");
+} = require("./src/data/accountManager");
+const { loginAllAccounts } = require("./src/auth/auth");
+const { checkQuotaAll } = require("./src/core/war");
+const { manageSettings, loadSettings } = require("./src/data/settings");
+const { testProxy } = require("./src/utils/proxyTester");
+const { startAutoMonitor } = require("./src/core/autoMonitor");
+const { startSniperMode } = require("./src/core/sniper");
+const { startSniperAPI } = require("./src/core/sniperAPI");
+const { scrapeWakdaIDs } = require("./src/core/wakdaScraper");
+const { startMultiSniper } = require("./src/core/multiSniper");
+const { secretMap, getSiteName } = require("./config/config");
 
 // --- HELPER: TAMPILKAN DAFTAR CABANG (2 KOLOM) ---
 function showBranchList() {
@@ -66,7 +66,7 @@ async function main() {
   console.log(chalk.white("5. Cek & Hapus Akun"));
   console.log(chalk.white("6. Monitor Otomatis"));
   console.log(chalk.white("7. Pengaturan Bot"));
-  console.log(chalk.magenta("8. Scrape Wakda ID (INTEL)"));
+  console.log(chalk.white("8. Scrape Wakda ID (INTEL)"));
   console.log(chalk.white("T. Test Proxy"));
   console.log(chalk.gray("──────────────────────────────"));
   console.log(chalk.red("0. Keluar"));
@@ -228,9 +228,6 @@ async function main() {
       break;
 
     case "6":
-      // Update untuk Monitor Otomatis juga biar konsisten (List -> Input)
-      // Tapi logic-nya ada di dalam autoMonitor.js,
-      // Untuk sekarang biarkan dulu, atau kamu mau ubah juga?
       await startAutoMonitor();
       await pause();
       break;

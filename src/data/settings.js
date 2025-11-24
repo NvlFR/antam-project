@@ -33,7 +33,7 @@ async function manageSettings() {
   // (Karena telegram.js juga memanggil loadSettings dari file ini)
   let sendTelegramMsg;
   try {
-    const telegramModule = require("./telegram");
+    const telegramModule = require("../utils/telegram");
     sendTelegramMsg = telegramModule.sendTelegramMsg;
   } catch (e) {
     // Fallback jika telegram.js belum dibuat
