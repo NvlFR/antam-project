@@ -1,7 +1,7 @@
 const { chromium } = require("playwright");
 const chalk = require("chalk");
 const fs = require("fs");
-const Table = require("cli-table3"); // IMPORT LIBRARY TABEL
+const Table = require("cli-table3");
 const { proxyConfig, getSiteName } = require("../../config/config");
 const { loadSettings } = require("../data/settings");
 const { loadAccounts } = require("../data/accountManager");
@@ -12,11 +12,9 @@ const DB_WAKDA_PATH = "./database/wakda.json";
 async function scrapeWakdaIDs() {
   console.clear();
   console.log(
-    chalk.bgCyan.black.bold(" 🕵️  INTELLIGENCE MODE: AUTO-SYNC WAKDA ")
+    chalk.bgCyan.black.bold(" 🕵️  INTELLIGENCE MODE: SLOW & STEADY ")
   );
-  console.log(
-    chalk.dim("Mencari ID Database Slot (Wakda) dari setiap cabang...")
-  );
+  console.log(chalk.dim("Mencari ID Wakda dengan mode lambat (Anti-Ban)..."));
 
   const accounts = loadAccounts();
   if (accounts.length === 0) {
@@ -31,15 +29,14 @@ async function scrapeWakdaIDs() {
     return;
   }
 
-  // Setup Tabel (Header)
   const table = new Table({
     head: [
       chalk.white.bold("ID"),
       chalk.white.bold("CABANG"),
-      chalk.white.bold("WAKDA ID TEMUAN"),
+      chalk.white.bold("WAKDA ID"),
       chalk.white.bold("STATUS"),
     ],
-    colWidths: [6, 30, 35, 15], // Lebar kolom diatur biar rapi
+    colWidths: [6, 30, 35, 15],
     wordWrap: true,
   });
 
@@ -55,6 +52,7 @@ async function scrapeWakdaIDs() {
   const settings = loadSettings();
   const cookies = JSON.parse(fs.readFileSync(sessionFile, "utf-8"));
 
+  // Gunakan Headless TRUE biar lebih ringan dan cepat (toh cuma scraping data)
   const browser = await chromium.launch({
     headless: settings.headless,
     args: ["--disable-blink-features=AutomationControlled"],
@@ -86,6 +84,16 @@ async function scrapeWakdaIDs() {
       return;
     }
 
+    // Cek apakah kena blokir di awal
+    const bodyText = await page.innerText("body");
+    if (bodyText.includes("pemblokiran IP sementara")) {
+      console.log(
+        chalk.bgRed.white(" 🚨 IP MASIH DIBLOKIR! Tunggu 10 menit lagi. ")
+      );
+      await browser.close();
+      return;
+    }
+
     console.log(chalk.yellow(`⏳ Mengambil list cabang...`));
     const options = await page.$$eval("select#site option", (opts) =>
       opts
@@ -95,40 +103,46 @@ async function scrapeWakdaIDs() {
 
     console.log(
       chalk.green(
-        `\n✅ Mulai Scanning ${options.length} Cabang (Mohon Tunggu)...\n`
+        `\n✅ Memulai Scanning Perlahan (${options.length} Cabang)...`
       )
     );
 
     let updateCount = 0;
+    let loopCount = 0;
 
     for (const opt of options) {
+      loopCount++;
       const siteId = opt.id;
       const siteName = getSiteName(siteId).replace("Butik Emas LM - ", "");
 
-      // Tampilkan progress bar sederhana di terminal biar gak bosen
       process.stdout.write(
-        chalk.yellow(`   Scanning [${siteId}] ${siteName}... `)
+        chalk.yellow(`   [${loopCount}/${options.length}] Scan ${siteName}... `)
       );
 
       // 1. Ambil Token URL
       await page.selectOption("select#site", siteId);
-      await page.waitForTimeout(200);
+      await page.waitForTimeout(500);
       const token = await page.inputValue("input#t");
 
       if (!token) {
-        process.stdout.write(chalk.red("No Token\n"));
-        table.push([siteId, siteName, "-", chalk.red("ERROR")]);
+        process.stdout.write(chalk.red("Skip (No Token)\n"));
         continue;
       }
 
       const url = `https://antrean.logammulia.com/antrean?site=${siteId}&t=${token}`;
 
       try {
-        await page.goto(url, { waitUntil: "domcontentloaded", timeout: 10000 });
+        await page.goto(url, { waitUntil: "domcontentloaded", timeout: 15000 });
 
         if (!page.url().includes("site=")) {
+          // Cek blokir lagi
+          if ((await page.content()).includes("pemblokiran IP")) {
+            console.log(
+              chalk.bgRed("\n 🛑 TERDETEKSI BLOKIR IP! BERHENTI SCANNING. ")
+            );
+            break;
+          }
           process.stdout.write(chalk.red("Redirected\n"));
-          table.push([siteId, siteName, "-", chalk.red("BLOCKED")]);
           await page.goto("https://antrean.logammulia.com/antrean");
           continue;
         }
@@ -156,13 +170,11 @@ async function scrapeWakdaIDs() {
           }
         }
 
-        // 3. OLAH DATA UNTUK TABEL
+        // 3. OLAH DATA
         if (wakdaIds && wakdaIds.length > 0) {
-          wakdaDb[siteId] = wakdaIds; // Update DB
+          wakdaDb[siteId] = wakdaIds;
           updateCount++;
           process.stdout.write(chalk.green("FOUND!\n"));
-
-          // Masukkan ke tabel (Hijau)
           table.push([
             siteId,
             siteName,
@@ -171,9 +183,6 @@ async function scrapeWakdaIDs() {
           ]);
         } else {
           process.stdout.write(chalk.gray("Kosong\n"));
-
-          // Masukkan ke tabel (Abu-abu)
-          // Ambil data lama dari DB kalau ada
           const oldData = wakdaDb[siteId]
             ? JSON.stringify(wakdaDb[siteId])
             : "-";
@@ -186,20 +195,27 @@ async function scrapeWakdaIDs() {
         }
       } catch (e) {
         process.stdout.write(chalk.red("Timeout\n"));
-        table.push([siteId, siteName, "-", chalk.red("TIMEOUT")]);
       }
 
-      await delay(500);
+      // --- DELAY PENTING (ANTI-BAN) ---
+      // Kita kasih jeda 2-4 detik setiap pindah cabang
+      const randomDelay = Math.floor(Math.random() * 2000) + 2000;
+      await delay(randomDelay);
+
+      // Istirahat Panjang setiap 5 cabang
+      if (loopCount % 5 === 0) {
+        process.stdout.write(
+          chalk.cyan("   ☕ Istirahat 10 detik (Safety Pause)...\n")
+        );
+        await delay(10000);
+      }
     }
 
-    // 4. TAMPILKAN TABEL FINAL
     console.log("\n" + table.toString());
-
-    // 5. SIMPAN
     fs.writeFileSync(DB_WAKDA_PATH, JSON.stringify(wakdaDb, null, 2));
     console.log(
       chalk.bgGreen.black(
-        ` \n✅ DATABASE SAVED! ${updateCount} data baru disimpan ke database/wakda.json \n`
+        ` \n✅ DATABASE SAVED! ${updateCount} data baru disimpan. \n`
       )
     );
   } catch (e) {

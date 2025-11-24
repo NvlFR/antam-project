@@ -24,7 +24,6 @@ async function loginSingleAccount(account, isRefresh = false) {
     );
   }
 
-  // ARGS TAMBAHAN AGAR HEADLESS TIDAK TERDETEKSI
   const stealthArgs = [
     "--disable-blink-features=AutomationControlled",
     "--disable-features=IsolateOrigins,site-per-process",
@@ -34,7 +33,7 @@ async function loginSingleAccount(account, isRefresh = false) {
     "--disable-accelerated-2d-canvas",
     "--no-first-run",
     "--no-zygote",
-    "--disable-gpu", // Kadang gpu bikin crash di headless
+    "--disable-gpu",
     "--hide-scrollbars",
     "--mute-audio",
   ];
@@ -47,7 +46,7 @@ async function loginSingleAccount(account, isRefresh = false) {
   const contextOptions = {
     userAgent:
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    viewport: { width: 1366, height: 768 }, // Viewport PC standar
+    viewport: { width: 1366, height: 768 },
     locale: "id-ID",
     timezoneId: "Asia/Jakarta",
   };
@@ -62,11 +61,8 @@ async function loginSingleAccount(account, isRefresh = false) {
   try {
     page = await context.newPage();
 
-    // Mencegah deteksi webdriver
     await page.addInitScript(() => {
-      Object.defineProperty(navigator, "webdriver", {
-        get: () => undefined,
-      });
+      Object.defineProperty(navigator, "webdriver", { get: () => undefined });
     });
 
     if (!isRefresh)
@@ -86,7 +82,6 @@ async function loginSingleAccount(account, isRefresh = false) {
       if (!isRefresh)
         console.log(chalk.yellow(`⚠️ Cloudflare Check... Menunggu...`));
       try {
-        // Tunggu input username muncul (max 30 detik)
         await page.waitForSelector("#username", { timeout: 30000 });
         if (!isRefresh) console.log(chalk.green("✅ Lolos Cloudflare!"));
       } catch (e) {
@@ -127,58 +122,83 @@ async function loginSingleAccount(account, isRefresh = false) {
       page.click('button[type="submit"]'),
     ]);
 
-    // 5. Validasi
+    // --- [PERBAIKAN LOGIKA VALIDASI & REDIRECT] ---
+
+    // Cek URL saat ini
+    const currentUrl = page.url();
+
+    // KASUS: Mental ke /home (Padahal sukses login)
     if (
-      page.url().includes("/users") ||
-      (await page.isVisible('a[href*="logout"]'))
+      currentUrl.includes("/home") ||
+      currentUrl === "https://antrean.logammulia.com/"
     ) {
+      if (!isRefresh)
+        console.log(
+          chalk.yellow(`   ⚠️ Redirected ke Home. Memaksa masuk Dashboard...`)
+        );
+
+      // Paksa masuk ke halaman dashboard
+      try {
+        await page.goto("https://antrean.logammulia.com/users", {
+          waitUntil: "domcontentloaded",
+        });
+      } catch (e) {
+        // Ignore timeout, lanjut cek elemen
+      }
+    }
+
+    // Cek Validitas Akhir: Apakah sudah di Dashboard atau ada tombol logout?
+    const isDashboard = page.url().includes("/users");
+    const hasLogout = await page.isVisible('a[href*="logout"]');
+
+    if (isDashboard || hasLogout) {
+      // LOGIN SUKSES
       const cookies = await context.cookies();
-      if (fs.existsSync(sessionFile))
+
+      // Hapus file lama biar bersih
+      if (fs.existsSync(sessionFile)) {
         try {
           fs.unlinkSync(sessionFile);
         } catch (e) {}
+      }
+
       fs.writeFileSync(sessionFile, JSON.stringify(cookies, null, 2));
 
       if (!isRefresh)
         console.log(chalk.green(`[${account.email}] ✅ LOGIN SUKSES!`));
     } else {
-      // Cek error spesifik
+      // LOGIN GAGAL
+
+      // Cek pesan error spesifik di layar
       const errorAlert = await page
         .locator(".alert")
         .textContent()
         .catch(() => "");
 
-      // Cek apakah mental ke home (tandanya login berhasil tapi redirect aneh)
-      if (page.url().includes("/home")) {
-        // Kadang antam redirect ke home dulu baru users
-        // Coba goto users manual
-        await page.goto("https://antrean.logammulia.com/users");
-        if (page.url().includes("/users")) {
-          // Sukses telat
-          const cookies = await context.cookies();
-          fs.writeFileSync(sessionFile, JSON.stringify(cookies, null, 2));
-          if (!isRefresh)
-            console.log(
-              chalk.green(`[${account.email}] ✅ LOGIN SUKSES (via Redirect)!`)
-            );
-          return;
-        }
+      // Cek apakah mental balik ke login (biasanya karena captcha/pass salah)
+      if (page.url().includes("/login")) {
+        throw new Error(
+          `Login Ditolak. Pesan: ${
+            errorAlert.trim() || "Mungkin Captcha Expired"
+          }`
+        );
       }
 
-      throw new Error(
-        `Login Gagal. URL: ${page.url()} | Pesan: ${
-          errorAlert.trim() || "Unknown Error"
-        }`
-      );
+      // Screenshot kondisi aneh (bukan home, bukan users, bukan login)
+      await page.screenshot({
+        path: `./screenshots/unknown_state_${account.email}.png`,
+      });
+      throw new Error(`Gagal Validasi Sesi. URL Akhir: ${page.url()}`);
     }
   } catch (error) {
     console.log(chalk.red(`[${account.email}] ❌ Gagal: ${error.message}`));
-    if (page)
+    if (page) {
       try {
         await page.screenshot({
           path: `./screenshots/error_login_${account.email}.png`,
         });
       } catch (e) {}
+    }
   } finally {
     if (browser) await browser.close();
   }
