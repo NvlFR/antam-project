@@ -10,6 +10,7 @@ const { sendTelegramMsg } = require("../utils/telegram");
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const DB_WAKDA_PATH = "./database/wakda.json";
 
+// DATABASE CADANGAN (FALLBACK ONLY)
 const wakdaMapFallback = {
   6: ["1", "2", "3", "4", "5"],
   3: ["11", "12"],
@@ -29,9 +30,7 @@ const wakdaMapFallback = {
 
 async function startSniperAPI(account, targetSiteId) {
   console.clear();
-  console.log(
-    chalk.bgRed.white.bold(" 🚀 SNIPER API: STRICT VALIDATION (ANTI-PHP) ")
-  );
+  console.log(chalk.bgRed.white.bold(" 🚀 SNIPER API: SERVER CRASH HANDLER "));
   console.log(
     chalk.dim(`Target: ${getSiteName(targetSiteId)} | Akun: ${account.email}`)
   );
@@ -44,7 +43,10 @@ async function startSniperAPI(account, targetSiteId) {
   const settings = loadSettings();
   const cookies = JSON.parse(fs.readFileSync(sessionFile, "utf-8"));
 
+  // --- LOGIC PENENTUAN PELURU ---
   let targetWakdaList = null;
+
+  // 1. PRIORITAS UTAMA: Cek Database JSON
   try {
     if (fs.existsSync(DB_WAKDA_PATH)) {
       const dbData = JSON.parse(fs.readFileSync(DB_WAKDA_PATH, "utf-8"));
@@ -60,11 +62,24 @@ async function startSniperAPI(account, targetSiteId) {
     }
   } catch (e) {}
 
-  if (!targetWakdaList || targetWakdaList.length === 0) {
-    targetWakdaList =
-      wakdaMapFallback[targetSiteId] ||
-      Array.from({ length: 50 }, (_, i) => String(i + 1));
+  // 2. PRIORITAS KEDUA: Cek Hardcode (Backup)
+  if (!targetWakdaList) {
+    targetWakdaList = wakdaMapFallback[targetSiteId];
+    if (targetWakdaList) {
+      console.log(
+        chalk.yellow(`⚠️ Data di DB kosong. Menggunakan ID Wakda Hardcoded.`)
+      );
+    }
   }
+
+  // 3. PRIORITAS TERAKHIR: Brute Force
+  if (!targetWakdaList) {
+    console.log(
+      chalk.red(`⚠️ ID Wakda tidak ditemukan. Mode BRUTE FORCE (1-50).`)
+    );
+    targetWakdaList = Array.from({ length: 50 }, (_, i) => String(i + 1));
+  }
+
   console.log(chalk.cyan(`🎯 Target IDs: [${targetWakdaList.join(", ")}]`));
 
   const browser = await chromium.launch({
@@ -160,7 +175,6 @@ async function startSniperAPI(account, targetSiteId) {
         );
       }
 
-      // Heartbeat (30 detik)
       if (diffSec > 60 && Date.now() - lastHeartbeat > 30000) {
         try {
           await page.reload({ waitUntil: "domcontentloaded" });
@@ -171,7 +185,7 @@ async function startSniperAPI(account, targetSiteId) {
         lastHeartbeat = Date.now();
       }
 
-      // Pre-Solve Early Bird (100 Detik)
+      // Anti-Spam Captcha (Trigger di T-100s)
       if (diffSec <= 100 && diffSec > 0 && !preSolvedCaptcha && !isSolving) {
         isSolving = true;
         console.log(chalk.yellow("\n\n🧩 Pre-Solving Captcha (Early Bird)..."));
@@ -214,36 +228,51 @@ async function startSniperAPI(account, targetSiteId) {
             "g-recaptcha-response": preSolvedCaptcha,
           };
 
-          requests.push(
-            context.request
-              .post("https://antrean.logammulia.com/antrean-ambil", {
-                form: formData,
-                headers: { Referer: targetUrl },
-              })
-              .then(async (response) => {
-                const text = await response.text();
-                // Cek Indikasi Sukses (API Level)
-                if (
-                  response.status() === 200 &&
-                  !text.includes("penuh") &&
-                  !text.includes("Gagal") &&
-                  !text.includes("Habis") &&
-                  !text.includes("Login") &&
-                  !text.includes("Pengumuman") &&
-                  !text.includes("Just a moment")
-                ) {
-                  console.log(
-                    chalk.bgGreen.black(
-                      ` ✅ HIT WAKDA ${wakdaId}: INDICATED SUCCESS! `
-                    )
-                  );
-                  // JANGAN KIRIM NOTIF DULU! TUNGGU VALIDASI VISUAL!
-                  return true;
+          // Fungsi Tembak dengan Retry Logic
+          const shoot = async () => {
+            try {
+              const response = await context.request.post(
+                "https://antrean.logammulia.com/antrean-ambil",
+                {
+                  form: formData,
+                  headers: { Referer: targetUrl },
                 }
+              );
+
+              const status = response.status();
+              const text = await response.text();
+
+              // --- CRASH HANDLER ---
+              if (status >= 500) {
+                console.log(
+                  chalk.red(` 💥 Server Error ${status}. Retrying...`)
+                );
                 return false;
-              })
-              .catch(() => false)
-          );
+              }
+
+              if (
+                status === 200 &&
+                !text.includes("penuh") &&
+                !text.includes("Gagal") &&
+                !text.includes("Habis") &&
+                !text.includes("Login") &&
+                !text.includes("Pengumuman")
+              ) {
+                console.log(
+                  chalk.bgGreen.black(
+                    ` ✅ HIT WAKDA ${wakdaId}: INDICATED SUCCESS! `
+                  )
+                );
+                return true;
+              }
+              return false;
+            } catch (e) {
+              console.log(chalk.red(` ❌ Network Error. Retrying...`));
+              return false;
+            }
+          };
+
+          requests.push(shoot());
         }
 
         console.log(
@@ -251,50 +280,52 @@ async function startSniperAPI(account, targetSiteId) {
         );
         const results = await Promise.all(requests);
 
-        // --- VALIDASI VISUAL (PENENTU KEBENARAN) ---
+        // --- VALIDASI FINAL VISUAL ---
         console.log(chalk.cyan("\n🏁 Validasi: Refresh Halaman..."));
-        await page.goto(targetUrl, {
-          waitUntil: "networkidle",
-          timeout: 30000,
-        });
 
-        // Cek Barcode / Nomor Antrean
+        // Kalau server error, page.goto mungkin timeout, kita paksa reload
+        try {
+          await page.goto(targetUrl, {
+            waitUntil: "networkidle",
+            timeout: 30000,
+          });
+        } catch (e) {
+          console.log(
+            chalk.yellow("⚠️ Refresh timeout. Screenshot apa adanya...")
+          );
+        }
+
+        // Cek Barcode
         const isBarcodeVisible = await page.evaluate(
           () =>
             document.body.innerText.includes("Nomor Antrean") ||
-            document.body.innerText.includes("Barcode") ||
-            document.querySelector(".barcode-container") !== null
+            document.body.innerText.includes("Barcode")
         );
 
         await page.screenshot({
           path: `./screenshots/BUKTI_TIKET_${Date.now()}.png`,
         });
 
-        // HANYA JIKA BARCODE MUNCUL, KITA RAYAKAN
         if (isBarcodeVisible) {
           console.log(
             chalk.bgGreen.white.bold(" 🎉 JACKPOT! TIKET MUNCUL DI LAYAR! 🎉 ")
           );
           console.log(chalk.green("Cek folder screenshots!"));
-
-          // BARU KIRIM TELEGRAM
           sendTelegramMsg(
-            `🎉 <b>JACKPOT VALID!</b>\nAkun: ${account.email}\nTiket sudah diamankan.`
+            `🎉 <b>VALIDASI SUKSES!</b>\nTiket Barcode sudah muncul.`
           );
         } else {
-          // Kalau API bilang sukses tapi gak ada barcode = PHP
           if (results.includes(true)) {
             console.log(
               chalk.red(
-                "❌ FALSE POSITIVE: API Tembus tapi Tiket Gak Muncul (PHP)."
+                "❌ FALSE POSITIVE (PHP). API Tembus tapi Tiket Gak Muncul."
               )
             );
           } else {
             console.log(chalk.red("❌ Gagal. Tidak ada tiket di layar."));
           }
-
           if (page.url().includes("/home"))
-            console.log(chalk.yellow("⚠️ Info: Mental ke Home (Sesi habis)."));
+            console.log(chalk.yellow("⚠️ Info: Mental ke Home."));
         }
 
         break;
