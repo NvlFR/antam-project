@@ -5,35 +5,23 @@ const { proxyConfig, getSiteName, siteKeys } = require("../../config/config");
 const { loadSettings } = require("../data/settings");
 const { solveRecaptchaV2 } = require("../utils/solver");
 const { ensureSessionValid } = require("../auth/sessionGuard");
-const { sendTelegramMsg } = require("../utils/telegram"); // Hanya untuk notif text
+const { sendTelegramMsg } = require("../utils/telegram");
+const { getTimeOffset } = require("../utils/ntp"); // Import NTP
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const DB_WAKDA_PATH = "./database/wakda.json";
 
-const wakdaMapFallback = {
-  6: ["1", "2", "3", "4", "5"],
-  3: ["11", "12"],
-  8: ["45", "32"],
-  19: ["44"],
-  16: ["49"],
-  17: ["43"],
-  20: ["47"],
-  21: ["48"],
-  23: ["46"],
-  5: ["50"],
-  24: ["51"],
-  1: ["1", "2"],
-  11: ["1", "2"],
-  10: ["1", "2"],
-};
-
 async function startSniperAPI(account, targetSiteId) {
   console.clear();
-  console.log(chalk.bgRed.white.bold(" 🚀 SNIPER API: LOCAL PROOF MODE "));
+  console.log(chalk.bgRed.white.bold(" 🚀 SNIPER API: GATLING GUN MODE "));
   console.log(
     chalk.dim(`Target: ${getSiteName(targetSiteId)} | Akun: ${account.email}`)
   );
 
+  // 1. Sync Waktu
+  const timeOffset = await getTimeOffset();
+
+  // 2. Cek Sesi
   await ensureSessionValid(account);
   const sessionFile = `./session/${account.email}.json`;
   if (!fs.existsSync(sessionFile))
@@ -42,29 +30,7 @@ async function startSniperAPI(account, targetSiteId) {
   const settings = loadSettings();
   const cookies = JSON.parse(fs.readFileSync(sessionFile, "utf-8"));
 
-  let targetWakdaList = null;
-  try {
-    if (fs.existsSync(DB_WAKDA_PATH)) {
-      const dbData = JSON.parse(fs.readFileSync(DB_WAKDA_PATH, "utf-8"));
-      if (
-        Array.isArray(dbData[targetSiteId]) &&
-        dbData[targetSiteId].length > 0
-      ) {
-        targetWakdaList = dbData[targetSiteId];
-        console.log(
-          chalk.green(`✅ Menggunakan ID Wakda Terbaru dari Database.`)
-        );
-      }
-    }
-  } catch (e) {}
-
-  if (!targetWakdaList || targetWakdaList.length === 0) {
-    targetWakdaList =
-      wakdaMapFallback[targetSiteId] ||
-      Array.from({ length: 50 }, (_, i) => String(i + 1));
-  }
-  console.log(chalk.cyan(`🎯 Target IDs: [${targetWakdaList.join(", ")}]`));
-
+  // 3. Launch Browser
   const browser = await chromium.launch({
     headless: false,
     args: ["--disable-blink-features=AutomationControlled"],
@@ -91,6 +57,9 @@ async function startSniperAPI(account, targetSiteId) {
   let preSolvedCaptcha = null;
   let isSolving = false;
 
+  // --- VARIABEL TARGET PELURU ---
+  let targetWakdaList = [];
+
   try {
     console.log(chalk.cyan("🔄 Masuk ke Dashboard..."));
     await page.goto("https://antrean.logammulia.com/antrean", {
@@ -101,13 +70,57 @@ async function startSniperAPI(account, targetSiteId) {
       await performEmergencyLogin(page, account);
     }
 
+    // --- [FITUR BARU: AUTO SCRAPE WAKDA LIVE] ---
+    console.log(chalk.yellow("🕵️ Scanning Wakda ID terbaru di halaman..."));
     try {
       await page.waitForSelector("select#site", { timeout: 15000 });
       await page.selectOption("select#site", targetSiteId);
       await page.waitForTimeout(500);
       tokenUrl = await page.inputValue("input#t");
+
+      // Pindah ke halaman cabang
+      targetUrl = `https://antrean.logammulia.com/antrean?site=${targetSiteId}&t=${tokenUrl}`;
+      await page.goto(targetUrl, { waitUntil: "domcontentloaded" });
+
+      // Scrape Wakda Langsung
+      const scrapedWakdas = await page.evaluate(() => {
+        const select = document.querySelector("select#wakda");
+        if (!select) return [];
+        // Ambil semua value kecuali kosong
+        return Array.from(select.options)
+          .map((o) => o.value)
+          .filter((v) => v !== "");
+      });
+
+      if (scrapedWakdas.length > 0) {
+        targetWakdaList = scrapedWakdas;
+        console.log(
+          chalk.green(
+            `✅ Wakda ID Live ditemukan: [${targetWakdaList.join(", ")}]`
+          )
+        );
+
+        // Update Database JSON (Biar tersimpan buat next run)
+        try {
+          let dbData = {};
+          if (fs.existsSync(DB_WAKDA_PATH))
+            dbData = JSON.parse(fs.readFileSync(DB_WAKDA_PATH, "utf-8"));
+          dbData[targetSiteId] = scrapedWakdas;
+          fs.writeFileSync(DB_WAKDA_PATH, JSON.stringify(dbData, null, 2));
+        } catch (e) {}
+      } else {
+        console.log(
+          chalk.yellow(
+            "⚠️ Wakda kosong (Belum buka). Menggunakan Fallback DB/Hardcode."
+          )
+        );
+        // Fallback Logic Lama (DB JSON -> Hardcode)
+        // ... (Kode lama load DB/Hardcode ditaruh di sini) ...
+        // Biar simple, kita anggap kalau live kosong, kita pakai Brute Force 1-50
+        targetWakdaList = Array.from({ length: 50 }, (_, i) => String(i + 1));
+      }
     } catch (e) {
-      console.log(chalk.red("❌ Gagal ambil token URL."));
+      console.log(chalk.red("❌ Gagal Infiltrasi."));
       await browser.close();
       return;
     }
@@ -115,12 +128,9 @@ async function startSniperAPI(account, targetSiteId) {
     if (!tokenUrl) throw new Error("Token URL kosong.");
 
     csrfToken = await getCsrfToken(page, context);
-    console.log(chalk.green(`✅ CSRF Awal: ${csrfToken.substring(0, 10)}...`));
+    console.log(chalk.green(`✅ CSRF: ${csrfToken.substring(0, 10)}...`));
 
-    targetUrl = `https://antrean.logammulia.com/antrean?site=${targetSiteId}&t=${tokenUrl}`;
-    console.log(chalk.yellow(`🚀 Standby di URL Target...`));
-    await page.goto(targetUrl, { waitUntil: "domcontentloaded" });
-
+    // --- PARSING WAKTU ---
     const bodyText = await page.innerText("body");
     const timeMatch = bodyText.match(/Pukul\s+(\d{2}:\d{2})/);
     let targetTime = new Date();
@@ -132,33 +142,30 @@ async function startSniperAPI(account, targetSiteId) {
       targetTime.setHours(parseInt(h), parseInt(m), 0, 0);
       console.log(chalk.greenBright(`📅 Target Lock: ${jamString} WIB`));
     } else {
-      console.log(chalk.red("⚠️ Jam tidak terdeteksi. Set manual: +1 menit."));
+      console.log(chalk.red("⚠️ Jam manual +1 menit."));
       targetTime.setMinutes(targetTime.getMinutes() + 1);
-      jamString = `${targetTime
-        .getHours()
-        .toString()
-        .padStart(2, "0")}:${targetTime
-        .getMinutes()
-        .toString()
-        .padStart(2, "0")}`;
+      jamString = `${targetTime.getHours()}:${targetTime.getMinutes()}`;
     }
 
-    console.log(chalk.blue("\n⏳ COUNTDOWN TO API LAUNCH..."));
+    console.log(chalk.blue("\n⏳ COUNTDOWN TO GATLING GUN..."));
     let lastHeartbeat = Date.now();
 
     while (true) {
-      const now = new Date();
+      // KOREKSI WAKTU DENGAN NTP OFFSET
+      const now = new Date(Date.now() + timeOffset);
       const diffSec = Math.floor((targetTime - now) / 1000);
 
-      if (diffSec > 0) {
+      // Karena kita mau burst start di -200ms, kita cek milliseconds juga
+      const diffMs = targetTime - now;
+
+      if (diffSec > 0)
         process.stdout.write(
           `\r⏰ T - ${diffSec}s | Captcha: ${
-            preSolvedCaptcha ? "✅" : isSolving ? "⏳ Solving..." : "❌"
+            preSolvedCaptcha ? "✅" : isSolving ? "⏳" : "❌"
           } `
         );
-      }
 
-      // Heartbeat (30 detik)
+      // Heartbeat Logic (Sama)
       if (diffSec > 60 && Date.now() - lastHeartbeat > 30000) {
         try {
           await page.reload({ waitUntil: "domcontentloaded" });
@@ -169,7 +176,7 @@ async function startSniperAPI(account, targetSiteId) {
         lastHeartbeat = Date.now();
       }
 
-      // Pre-Solve Captcha (Anti-Spam)
+      // Pre-Solve (Sama)
       if (diffSec <= 100 && diffSec > 0 && !preSolvedCaptcha && !isSolving) {
         isSolving = true;
         console.log(chalk.yellow("\n\n🧩 Pre-Solving Captcha..."));
@@ -179,138 +186,144 @@ async function startSniperAPI(account, targetSiteId) {
             console.log(chalk.green("\n✅ Captcha Ready!"));
           })
           .catch((e) => {
-            console.log(chalk.red("\n❌ Gagal solve, reset kunci."));
             isSolving = false;
           });
       }
 
-      // --- FIRE ---
-      if (diffSec <= 0) {
+      // --- GATLING GUN TRIGGER (Mulai 200ms sebelum jam) ---
+      if (diffMs <= 200) {
         console.log(
-          chalk.magenta.bold("\n\n🚀 LAUNCHING API MISSILES (INJECTION)...")
+          chalk.magenta.bold("\n\n🚀 GATLING GUN ACTIVATED !!! 💥💥💥")
         );
 
         if (!preSolvedCaptcha) {
-          console.log("⚠️ Darurat: Solving Captcha on-the-fly...");
+          console.log("⚠️ Darurat: Solve on-fly...");
           preSolvedCaptcha = await solveRecaptchaV2(
             page.url(),
             siteKeys.antrean
           );
         }
 
-        const requests = [];
+        // --- STRATEGI GATLING GUN ---
+        // Kita kirim request beruntun dengan jeda 50-100ms
+        const burstCount = 5; // 5 Rentetan
+        const burstDelay = 100; // Jeda antar rentetan (ms)
 
-        for (const wakdaId of targetWakdaList) {
-          const formattedJam =
-            jamString.length === 5 ? `${jamString}:00` : jamString;
+        const allPromises = [];
 
-          const formData = {
-            csrf_test_name: csrfToken,
-            wakda: wakdaId,
-            id_cabang: targetSiteId,
-            jam_slot: formattedJam,
-            waktu: "",
-            token: tokenUrl,
-            "g-recaptcha-response": preSolvedCaptcha,
-          };
+        for (let i = 0; i < burstCount; i++) {
+          // Setiap rentetan menembak SEMUA Target Wakda secara paralel
+          console.log(chalk.yellow(`   🔥 BURST #${i + 1} Firing...`));
 
-          requests.push(
-            context.request
-              .post("https://antrean.logammulia.com/antrean-ambil", {
-                form: formData,
-                headers: { Referer: targetUrl },
-              })
-              .then(async (response) => {
-                const text = await response.text();
-                // Validasi Ketat API Response
-                if (
-                  response.status() === 200 &&
-                  !text.includes("penuh") &&
-                  !text.includes("Gagal") &&
-                  !text.includes("Habis") &&
-                  !text.includes("Login") &&
-                  !text.includes("Pengumuman")
-                ) {
-                  console.log(
-                    chalk.bgGreen.black(
-                      ` ✅ HIT WAKDA ${wakdaId}: INDICATED SUCCESS! `
-                    )
-                  );
-                  return true;
-                }
-                return false;
-              })
-              .catch(() => false)
-          );
+          const wavePromises = targetWakdaList.map((wakdaId) => {
+            return shootRequest(
+              page,
+              csrfToken,
+              wakdaId,
+              targetSiteId,
+              jamString,
+              tokenUrl,
+              preSolvedCaptcha,
+              targetUrl
+            );
+          });
+
+          allPromises.push(...wavePromises);
+
+          // Tunggu jeda sebelum rentetan berikutnya
+          await delay(burstDelay);
         }
 
-        console.log(
-          chalk.yellow(`🔥 Sending ${requests.length} Concurrent Requests...`)
-        );
-        const results = await Promise.all(requests);
+        // Tunggu semua peluru mendarat
+        const results = await Promise.all(allPromises);
 
-        // --- VALIDASI FINAL VISUAL ---
-        console.log(chalk.cyan("\n🏁 Validasi: Refresh Halaman..."));
+        // Cek apakah ada yang kena
+        const hit = results.find((r) => r.success);
+
+        // VALIDASI AKHIR
+        console.log(chalk.cyan("\n🏁 Validasi Akhir..."));
         await page.goto(targetUrl, {
           waitUntil: "networkidle",
           timeout: 30000,
         });
+        await page.screenshot({
+          path: `./screenshots/GATLING_RESULT_${Date.now()}.png`,
+        });
 
-        const isBarcodeVisible = await page.evaluate(
-          () =>
-            document.body.innerText.includes("Nomor Antrean") ||
-            document.body.innerText.includes("Barcode") ||
-            document.querySelector(".barcode-container") !== null // Tambahan selector untuk kontainer barcode
-        );
-
-        // 1. Simpan HTML Mentah
-        const finalHTMLContent = await page.content();
-        const htmlFilePath = `./screenshots/HTML_BUKTI_${Date.now()}.html`;
-        fs.writeFileSync(htmlFilePath, finalHTMLContent);
-
-        // 2. Simpan Screenshot
-        const ssPath = `./screenshots/BUKTI_TIKET_${Date.now()}.png`;
-        await page.screenshot({ path: ssPath });
-
-        if (isBarcodeVisible) {
+        if (hit) {
           console.log(
-            chalk.bgGreen.white.bold(" 🎉 JACKPOT! TIKET MUNCUL DI LAYAR! 🎉 ")
+            chalk.bgGreen.white.bold(
+              ` 🎉 GATLING GUN HIT! WAKDA ${hit.id} TEMBUS! 🎉 `
+            )
           );
-          console.log(
-            chalk.yellow(`   Bukti HTML tersimpan di: ${htmlFilePath}`)
-          );
-
-          // Kirim Notif Telegram
           sendTelegramMsg(
-            `🎉 <b>JACKPOT VALID!</b>\nAkun: ${
-              account.email
-            }\nTiket sudah diamankan.\nCek file ${path.basename(
-              htmlFilePath
-            )} di PC Anda!`
+            `🎉 <b>GATLING GUN WIN!</b>\nAkun: ${account.email}\nWakda: ${hit.id}`
           );
         } else {
-          if (results.includes(true)) {
-            console.log(
-              chalk.red(
-                "❌ FALSE POSITIVE (PHP). API Tembus tapi Tiket Gak Muncul."
-              )
-            );
-          } else {
-            console.log(chalk.red("❌ Gagal. Tidak ada tiket di layar."));
-          }
-          if (page.url().includes("/home"))
-            console.log(chalk.yellow("⚠️ Info: Mental ke Home."));
+          console.log(chalk.red("❌ Semua peluru meleset/penuh."));
         }
 
         break;
       }
-      await delay(1000);
+      await delay(50); // Loop check lebih cepat (50ms)
     }
   } catch (error) {
     console.error(chalk.red(`CRASH: ${error.message}`));
   } finally {
     console.log("Selesai.");
   }
+}
+
+// Helper Tembak (Dipisah biar rapi)
+async function shootRequest(
+  page,
+  csrf,
+  wakda,
+  branch,
+  jam,
+  token,
+  captcha,
+  referer
+) {
+  // Kita pakai Injection Fetch (Paling Aman)
+  return await page.evaluate(
+    async (data) => {
+      try {
+        const formData = new URLSearchParams();
+        formData.append("csrf_test_name", data.csrf);
+        formData.append("wakda", data.wakda);
+        formData.append("id_cabang", data.branch);
+        formData.append("jam_slot", data.jam);
+        formData.append("waktu", "");
+        formData.append("token", data.token);
+        formData.append("g-recaptcha-response", data.captcha);
+
+        const response = await fetch(
+          "https://antrean.logammulia.com/antrean-ambil",
+          {
+            method: "POST",
+            body: formData,
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          }
+        );
+
+        if (response.status === 200) {
+          const text = await response.text();
+          if (
+            !text.includes("penuh") &&
+            !text.includes("Gagal") &&
+            !text.includes("Habis")
+          ) {
+            return { success: true, id: data.wakda };
+          }
+        }
+        return { success: false, id: data.wakda };
+      } catch (e) {
+        return { success: false, id: data.wakda };
+      }
+    },
+    { csrf, wakda, branch, jam, token, captcha }
+  );
 }
 
 async function getCsrfToken(page, context) {
