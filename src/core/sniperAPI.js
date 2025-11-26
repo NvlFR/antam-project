@@ -1,36 +1,47 @@
 const { chromium } = require("playwright");
 const chalk = require("chalk");
 const fs = require("fs");
+const path = require("path");
 const { proxyConfig, getSiteName, siteKeys } = require("../../config/config");
 const { loadSettings } = require("../data/settings");
 const { solveRecaptchaV2 } = require("../utils/solver");
 const { ensureSessionValid } = require("../auth/sessionGuard");
 const { sendTelegramMsg } = require("../utils/telegram");
-const { getTimeOffset } = require("../utils/ntp"); // Import NTP
+const { getTimeOffset } = require("../utils/ntp");
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const DB_WAKDA_PATH = "./database/wakda.json";
 
+// Helper: Simpan Log Data Mentah
+function saveDebugData(label, data, ext = "html") {
+  const logDir = "./logs/debug_dumps";
+  if (!fs.existsSync(logDir)) fs.mkdirSync(logDir, { recursive: true });
+
+  const filename = `${label}_${Date.now()}.${ext}`;
+  fs.writeFileSync(path.join(logDir, filename), data);
+  // console.log(chalk.gray(`   💾 Data tersimpan: ${filename}`));
+  return filename;
+}
+
 async function startSniperAPI(account, targetSiteId) {
   console.clear();
-  console.log(chalk.bgRed.white.bold(" 🚀 SNIPER API: GATLING GUN MODE "));
+  console.log(
+    chalk.bgRed.white.bold(" 🚀 SNIPER API: BLACK BOX RECORDER MODE ")
+  );
   console.log(
     chalk.dim(`Target: ${getSiteName(targetSiteId)} | Akun: ${account.email}`)
   );
 
-  // 1. Sync Waktu
   const timeOffset = await getTimeOffset();
-
-  // 2. Cek Sesi
   await ensureSessionValid(account);
+
   const sessionFile = `./session/${account.email}.json`;
   if (!fs.existsSync(sessionFile))
-    return console.log(chalk.red("❌ Session hilang! Login dulu."));
+    return console.log(chalk.red("❌ Session hilang!"));
 
   const settings = loadSettings();
   const cookies = JSON.parse(fs.readFileSync(sessionFile, "utf-8"));
 
-  // 3. Launch Browser
   const browser = await chromium.launch({
     headless: false,
     args: ["--disable-blink-features=AutomationControlled"],
@@ -56,8 +67,6 @@ async function startSniperAPI(account, targetSiteId) {
   let csrfToken = "";
   let preSolvedCaptcha = null;
   let isSolving = false;
-
-  // --- VARIABEL TARGET PELURU ---
   let targetWakdaList = [];
 
   try {
@@ -66,27 +75,22 @@ async function startSniperAPI(account, targetSiteId) {
       waitUntil: "domcontentloaded",
     });
 
-    if (page.url().includes("login")) {
+    if (page.url().includes("login"))
       await performEmergencyLogin(page, account);
-    }
 
-    // --- [FITUR BARU: AUTO SCRAPE WAKDA LIVE] ---
-    console.log(chalk.yellow("🕵️ Scanning Wakda ID terbaru di halaman..."));
+    console.log(chalk.yellow("🕵️ Scanning Wakda ID..."));
     try {
       await page.waitForSelector("select#site", { timeout: 15000 });
       await page.selectOption("select#site", targetSiteId);
       await page.waitForTimeout(500);
       tokenUrl = await page.inputValue("input#t");
 
-      // Pindah ke halaman cabang
       targetUrl = `https://antrean.logammulia.com/antrean?site=${targetSiteId}&t=${tokenUrl}`;
       await page.goto(targetUrl, { waitUntil: "domcontentloaded" });
 
-      // Scrape Wakda Langsung
       const scrapedWakdas = await page.evaluate(() => {
         const select = document.querySelector("select#wakda");
         if (!select) return [];
-        // Ambil semua value kecuali kosong
         return Array.from(select.options)
           .map((o) => o.value)
           .filter((v) => v !== "");
@@ -95,12 +99,9 @@ async function startSniperAPI(account, targetSiteId) {
       if (scrapedWakdas.length > 0) {
         targetWakdaList = scrapedWakdas;
         console.log(
-          chalk.green(
-            `✅ Wakda ID Live ditemukan: [${targetWakdaList.join(", ")}]`
-          )
+          chalk.green(`✅ Wakda Live: [${targetWakdaList.join(", ")}]`)
         );
-
-        // Update Database JSON (Biar tersimpan buat next run)
+        // Update DB
         try {
           let dbData = {};
           if (fs.existsSync(DB_WAKDA_PATH))
@@ -109,14 +110,7 @@ async function startSniperAPI(account, targetSiteId) {
           fs.writeFileSync(DB_WAKDA_PATH, JSON.stringify(dbData, null, 2));
         } catch (e) {}
       } else {
-        console.log(
-          chalk.yellow(
-            "⚠️ Wakda kosong (Belum buka). Menggunakan Fallback DB/Hardcode."
-          )
-        );
-        // Fallback Logic Lama (DB JSON -> Hardcode)
-        // ... (Kode lama load DB/Hardcode ditaruh di sini) ...
-        // Biar simple, kita anggap kalau live kosong, kita pakai Brute Force 1-50
+        console.log(chalk.yellow("⚠️ Wakda kosong. Menggunakan Default 1-50."));
         targetWakdaList = Array.from({ length: 50 }, (_, i) => String(i + 1));
       }
     } catch (e) {
@@ -144,28 +138,29 @@ async function startSniperAPI(account, targetSiteId) {
     } else {
       console.log(chalk.red("⚠️ Jam manual +1 menit."));
       targetTime.setMinutes(targetTime.getMinutes() + 1);
-      jamString = `${targetTime.getHours()}:${targetTime.getMinutes()}`;
+      jamString = `${targetTime
+        .getHours()
+        .toString()
+        .padStart(2, "0")}:${targetTime
+        .getMinutes()
+        .toString()
+        .padStart(2, "0")}`;
     }
 
-    console.log(chalk.blue("\n⏳ COUNTDOWN TO GATLING GUN..."));
+    console.log(chalk.blue("\n⏳ COUNTDOWN..."));
     let lastHeartbeat = Date.now();
 
     while (true) {
-      // KOREKSI WAKTU DENGAN NTP OFFSET
       const now = new Date(Date.now() + timeOffset);
       const diffSec = Math.floor((targetTime - now) / 1000);
-
-      // Karena kita mau burst start di -200ms, kita cek milliseconds juga
       const diffMs = targetTime - now;
 
       if (diffSec > 0)
         process.stdout.write(
-          `\r⏰ T - ${diffSec}s | Captcha: ${
-            preSolvedCaptcha ? "✅" : isSolving ? "⏳" : "❌"
-          } `
+          `\r⏰ T - ${diffSec}s | Captcha: ${preSolvedCaptcha ? "✅" : "❌"}   `
         );
 
-      // Heartbeat Logic (Sama)
+      // Heartbeat
       if (diffSec > 60 && Date.now() - lastHeartbeat > 30000) {
         try {
           await page.reload({ waitUntil: "domcontentloaded" });
@@ -176,7 +171,7 @@ async function startSniperAPI(account, targetSiteId) {
         lastHeartbeat = Date.now();
       }
 
-      // Pre-Solve (Sama)
+      // Pre-Solve
       if (diffSec <= 100 && diffSec > 0 && !preSolvedCaptcha && !isSolving) {
         isSolving = true;
         console.log(chalk.yellow("\n\n🧩 Pre-Solving Captcha..."));
@@ -190,62 +185,63 @@ async function startSniperAPI(account, targetSiteId) {
           });
       }
 
-      // --- GATLING GUN TRIGGER (Mulai 200ms sebelum jam) ---
+      // --- GATLING GUN ---
       if (diffMs <= 200) {
         console.log(
-          chalk.magenta.bold("\n\n🚀 GATLING GUN ACTIVATED !!! 💥💥💥")
+          chalk.magenta.bold("\n\n🚀 GATLING GUN: RECORDING EVERYTHING !!!")
         );
 
-        if (!preSolvedCaptcha) {
-          console.log("⚠️ Darurat: Solve on-fly...");
+        if (!preSolvedCaptcha)
           preSolvedCaptcha = await solveRecaptchaV2(
             page.url(),
             siteKeys.antrean
           );
-        }
 
-        // --- STRATEGI GATLING GUN ---
-        // Kita kirim request beruntun dengan jeda 50-100ms
-        const burstCount = 5; // 5 Rentetan
-        const burstDelay = 100; // Jeda antar rentetan (ms)
+        const burstCount = 5;
+        const burstDelay = 100;
 
         const allPromises = [];
 
         for (let i = 0; i < burstCount; i++) {
-          // Setiap rentetan menembak SEMUA Target Wakda secara paralel
           console.log(chalk.yellow(`   🔥 BURST #${i + 1} Firing...`));
 
           const wavePromises = targetWakdaList.map((wakdaId) => {
-            return shootRequest(
+            return shootRequestAndReturnData(
               page,
               csrfToken,
               wakdaId,
               targetSiteId,
               jamString,
               tokenUrl,
-              preSolvedCaptcha,
-              targetUrl
+              preSolvedCaptcha
             );
           });
 
           allPromises.push(...wavePromises);
-
-          // Tunggu jeda sebelum rentetan berikutnya
           await delay(burstDelay);
         }
 
-        // Tunggu semua peluru mendarat
-        const results = await Promise.all(allPromises);
+        // Tunggu semua selesai dan kumpulkan data
+        const rawResults = await Promise.all(allPromises);
 
-        // Cek apakah ada yang kena
-        const hit = results.find((r) => r.success);
+        // Filter hasil
+        const hit = rawResults.find((r) => r.success);
 
-        // VALIDASI AKHIR
-        console.log(chalk.cyan("\n🏁 Validasi Akhir..."));
+        // LOGGING DATA MENTAH
+        // Kita simpan 1 sampel respon sukses atau gagal pertama buat analisis
+        if (rawResults.length > 0) {
+          const sample = hit || rawResults[0];
+          saveDebugData(`API_RESPONSE_${sample.id}`, sample.body, "html");
+        }
+
+        // DUMP HTML HALAMAN AKHIR
+        console.log(chalk.cyan("\n🏁 Saving Final State..."));
         await page.goto(targetUrl, {
           waitUntil: "networkidle",
           timeout: 30000,
         });
+        const finalHtml = await page.content();
+        const finalFile = saveDebugData("FINAL_PAGE", finalHtml, "html");
         await page.screenshot({
           path: `./screenshots/GATLING_RESULT_${Date.now()}.png`,
         });
@@ -253,19 +249,21 @@ async function startSniperAPI(account, targetSiteId) {
         if (hit) {
           console.log(
             chalk.bgGreen.white.bold(
-              ` 🎉 GATLING GUN HIT! WAKDA ${hit.id} TEMBUS! 🎉 `
+              ` 🎉 INDIKASI SUKSES! Wakda ${hit.id} Tembus. `
             )
           );
           sendTelegramMsg(
-            `🎉 <b>GATLING GUN WIN!</b>\nAkun: ${account.email}\nWakda: ${hit.id}`
+            `🎉 <b>INDIKASI HIT!</b>\nWakda: ${hit.id}\nCek file: logs/debug_dumps`
           );
         } else {
-          console.log(chalk.red("❌ Semua peluru meleset/penuh."));
+          console.log(
+            chalk.red("❌ Tidak ada respon positif. Cek logs/debug_dumps.")
+          );
         }
 
         break;
       }
-      await delay(50); // Loop check lebih cepat (50ms)
+      await delay(50);
     }
   } catch (error) {
     console.error(chalk.red(`CRASH: ${error.message}`));
@@ -274,18 +272,15 @@ async function startSniperAPI(account, targetSiteId) {
   }
 }
 
-// Helper Tembak (Dipisah biar rapi)
-async function shootRequest(
+async function shootRequestAndReturnData(
   page,
   csrf,
   wakda,
   branch,
   jam,
   token,
-  captcha,
-  referer
+  captcha
 ) {
-  // Kita pakai Injection Fetch (Paling Aman)
   return await page.evaluate(
     async (data) => {
       try {
@@ -307,19 +302,27 @@ async function shootRequest(
           }
         );
 
-        if (response.status === 200) {
-          const text = await response.text();
-          if (
-            !text.includes("penuh") &&
-            !text.includes("Gagal") &&
-            !text.includes("Habis")
-          ) {
-            return { success: true, id: data.wakda };
-          }
-        }
-        return { success: false, id: data.wakda };
+        const text = await response.text();
+        const isSuccess =
+          response.status === 200 &&
+          !text.includes("penuh") &&
+          !text.includes("Gagal") &&
+          !text.includes("Habis") &&
+          !text.includes("Login");
+
+        return {
+          success: isSuccess,
+          id: data.wakda,
+          body: text, // Kembalikan body text ke Node.js
+          status: response.status,
+        };
       } catch (e) {
-        return { success: false, id: data.wakda };
+        return {
+          success: false,
+          id: data.wakda,
+          body: "Network Error: " + e.message,
+          status: 0,
+        };
       }
     },
     { csrf, wakda, branch, jam, token, captcha }
